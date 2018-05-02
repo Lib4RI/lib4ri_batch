@@ -45,11 +45,33 @@ abstract class batch_edit_mods{
     }
 
     private function get_dc(){
-        $this->get_ds($this->dc, 'DC');
+        foreach ($this->object as $datastream) {
+            if ($datastream->id === 'DC'){
+                $this->dc = $datastream;
+                break;
+            }
+        }
+        
+//        $this->get_ds($this->dc, 'DC');
     }
     
     private function update_dc(){
         $this->get_dc();
+        $xsl = new DOMDocument();
+        $xsl->load(drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl');
+        
+        $input = new DOMDocument();
+        $input->loadXML($this->dc->content);
+        
+        $processor = new XSLTProcessor();
+        $processor->importStylesheet($xsl);
+        
+        $new_dc = $processor->transformToXML($input);
+        
+        var_dump(drupal_get_path('module', 'islandora_importer'));
+        if ($new_dc)
+            $this->dc->content = $new_dc;
+        
         // TODO: actual dc update
     }
     
@@ -74,6 +96,6 @@ abstract class batch_edit_mods{
 class test_edit extends batch_edit_mods{
     
     protected function edit_mods(){
-        $this->mods_content = str_replace('nice joke', 'bsgd', $this->mods_content);
+        $this->mods_content = str_replace('bsgd', 'nice joke',    $this->mods_content);
     }
 }
