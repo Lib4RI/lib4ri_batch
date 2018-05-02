@@ -19,6 +19,14 @@ function lib4ri_batch_edit_mods_drush_command() {
         'namespace' => array('description' => dt('The namespace')),
       ),
     ),
+    'edit-single-mods' => array(
+        'description' => dt('Batch edits a single MODS according to the specified rule and parameters.'),
+        'drupal_dependencies' => array('islandora'),
+        'examples' => array('drush -u 1 -v edit-single-mods --pid=eawag:458'),
+        'options' => array(
+            'pid' => array('description' => dt('The pid of the islandora object')),
+        ),
+    )  
   );
 }
 
@@ -180,7 +188,36 @@ function lib4ri_batch_edit_mods_get_object_set_from_namespace($repository, $name
     return $repository->ri->sparqlQuery($query, 1);
 }
 
+/************************************************************************/
 
+function drush_lib4ri_batch_edit_mods_edit_single_mods($pid = null) {
+    batch_set(lib4ri_batch_edit_mods_edit_single_mods_batch(drush_get_option('pid')));
+    drush_backend_batch_process();
+}
+
+function lib4ri_batch_edit_mods_edit_single_mods_batch($pid) {
+    return array(
+        'title' => t('drush_lib4ri_batch_edit_mods_edit_single_mods'),
+        'init_message' => t("..."),
+        'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining: @estimate.'),
+        'error_message' => t('An error has occured.'),
+        'operations' => array(
+            array(
+                'lib4ri_batch_edit_mods_edit_single_mods_batch_operation',
+                array($pid),
+            ),
+        ),
+    );
+}
+
+function lib4ri_batch_edit_mods_edit_single_mods_batch_operation($pid, &$context) {
+    $sandbox = &$context['sandbox'];
+    // Establish the connection to tuque; this is where the magic starts.
+    $connection = islandora_get_tuque_connection();
+    $repository = $connection->repository;
+    
+    $context['message'] = lib4ri_batch_edit_mods_edit_mods($repository, $pid);
+}
 
 // function lib4ri_batch_edit_mods_edit_mods($repository, $pid){
 //     drush_print(dt($pid));
