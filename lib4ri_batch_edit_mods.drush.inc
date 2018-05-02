@@ -1,6 +1,7 @@
 <?php
 
-include_once "includes/lib4ri_batch_edit_mods.inc";
+//include_once "includes/lib4ri_batch_edit_mods.inc";
+include_once "includes/rules.inc";
 
 /**
  * @file
@@ -219,7 +220,8 @@ function lib4ri_batch_edit_mods_edit_single_mods_batch_operation($pid, &$context
     $context['message'] = lib4ri_batch_edit_mods_edit_mods($repository, $pid);
 }
 
-// function lib4ri_batch_edit_mods_edit_mods($repository, $pid){
-//     drush_print(dt($pid));
-//     return 0;
-// }
+
+function lib4ri_batch_edit_mods_edit_mods($repository, $pid){
+    new test_edit($repository, $pid);
+}
+
