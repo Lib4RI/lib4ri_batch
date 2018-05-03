@@ -13,11 +13,12 @@ include_once "includes/rules.inc";
 function lib4ri_batch_edit_mods_drush_command() {
   return array(
     'edit-mods' => array(
-      'description' => dt('Batch edits MODS according to the specified rule and parameters.'),
-      'drupal_dependencies' => array('islandora'),
-      'examples' => array('drush -u 1 -v edit-mods --source_namespace=islandora'),
-      'options' => array(
-        'namespace' => array('description' => dt('The namespace')),
+        'description' => dt('Batch edits MODS according to the specified rule and parameters.'),
+        'drupal_dependencies' => array('islandora'),
+        'examples' => array('drush -u 1 -v edit-mods --namespace=islandora'),
+        'options' => array(
+            'namespace' => array('description' => dt('The namespace')),
+            'rule' => array('description' => dt('The edit rule to apply')),
       ),
     ),
     'edit-single-mods' => array(
@@ -26,6 +27,7 @@ function lib4ri_batch_edit_mods_drush_command() {
         'examples' => array('drush -u 1 -v edit-single-mods --pid=eawag:458'),
         'options' => array(
             'pid' => array('description' => dt('The pid of the islandora object')),
+            'rule' => array('description' => dt('The edit rule to apply')),
         ),
     )  
   );
@@ -35,8 +37,8 @@ function lib4ri_batch_edit_mods_drush_command() {
  * Drush command.
  * drush_[MODULE_NAME]_[COMMAND_NAME]().
  */
-function drush_lib4ri_batch_edit_mods_edit_mods($namespace = 'islandora') {
-    batch_set(lib4ri_batch_edit_mods_edit_mods_batch(drush_get_option('namespace')));
+function drush_lib4ri_batch_edit_mods_edit_mods($rule = null, $namespace = 'islandora') {
+    batch_set(lib4ri_batch_edit_mods_edit_mods_batch(drush_get_option('rule'), drush_get_option('namespace')));
     drush_backend_batch_process();
 }
 
@@ -44,7 +46,7 @@ function drush_lib4ri_batch_edit_mods_edit_mods($namespace = 'islandora') {
  * Batch process definition for the repository duplicator command.
  *
  */
-function lib4ri_batch_edit_mods_edit_mods_batch($namespace) {
+function lib4ri_batch_edit_mods_edit_mods_batch($rule, $namespace) {
     return array(
         'title' => t('drush_lib4ri_batch_edit_mods_edit_mods'),
         'init_message' => t("..."),
@@ -53,7 +55,7 @@ function lib4ri_batch_edit_mods_edit_mods_batch($namespace) {
         'operations' => array(
             array(
                 'lib4ri_batch_edit_mods_edit_mods_batch_operation',
-                array($namespace),
+                array($rule, $namespace),
             ),
         ),
     );
@@ -63,7 +65,7 @@ function lib4ri_batch_edit_mods_edit_mods_batch($namespace) {
  * Batch operation for repository duplicator.
  *
  */
-function lib4ri_batch_edit_mods_edit_mods_batch_operation($namespace, &$context) {
+function lib4ri_batch_edit_mods_edit_mods_batch_operation($rule, $namespace, &$context) {
 //     module_load_include('inc', 'lib4ri_batch_edit_mods', 'includes/lib4ri_batch_edit_mods');
     
     $sandbox = &$context['sandbox'];
@@ -86,7 +88,7 @@ function lib4ri_batch_edit_mods_edit_mods_batch_operation($namespace, &$context)
     // Grab the next object in the namespace.
     $object = lib4ri_batch_edit_mods_get_object_set_from_namespace($repository, $namespace, $sandbox['current_index']);
     // Duplicate the object represented by the return value from the query.
-    $context['message'] = lib4ri_batch_edit_mods_edit_mods($repository, $object[0]['pid']['value']); //DO STUFF HERE!!!!
+    $context['message'] = lib4ri_batch_edit_mods_edit_mods($rule, $repository, $object[0]['pid']['value']); //DO STUFF HERE!!!!
     // Increment the query offset, otherwise.
     $sandbox['current_index']++;
     // Finish if this was the last object.
@@ -191,12 +193,12 @@ function lib4ri_batch_edit_mods_get_object_set_from_namespace($repository, $name
 
 /************************************************************************/
 
-function drush_lib4ri_batch_edit_mods_edit_single_mods($pid = null) {
-    batch_set(lib4ri_batch_edit_mods_edit_single_mods_batch(drush_get_option('pid')));
+function drush_lib4ri_batch_edit_mods_edit_single_mods($rule = null, $pid = null) {
+    batch_set(lib4ri_batch_edit_mods_edit_single_mods_batch(drush_get_option('rule'), drush_get_option('pid')));
     drush_backend_batch_process();
 }
 
-function lib4ri_batch_edit_mods_edit_single_mods_batch($pid) {
+function lib4ri_batch_edit_mods_edit_single_mods_batch($rule, $pid) {
     return array(
         'title' => t('drush_lib4ri_batch_edit_mods_edit_single_mods'),
         'init_message' => t("..."),
@@ -205,23 +207,24 @@ function lib4ri_batch_edit_mods_edit_single_mods_batch($pid) {
         'operations' => array(
             array(
                 'lib4ri_batch_edit_mods_edit_single_mods_batch_operation',
-                array($pid),
+                array($rule, $pid),
             ),
         ),
     );
 }
 
-function lib4ri_batch_edit_mods_edit_single_mods_batch_operation($pid, &$context) {
+function lib4ri_batch_edit_mods_edit_single_mods_batch_operation($rule, $pid, &$context) {
     $sandbox = &$context['sandbox'];
     // Establish the connection to tuque; this is where the magic starts.
     $connection = islandora_get_tuque_connection();
     $repository = $connection->repository;
     
-    $context['message'] = lib4ri_batch_edit_mods_edit_mods($repository, $pid);
+    $context['message'] = lib4ri_batch_edit_mods_edit_mods($rule, $repository, $pid);
 }
 
 
-function lib4ri_batch_edit_mods_edit_mods($repository, $pid){
+function lib4ri_batch_edit_mods_edit_mods($rule, $repository, $pid){
+    
     new test_edit($repository, $pid);
 }
 
