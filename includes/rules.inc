@@ -12,6 +12,9 @@ abstract class batch_edit_mods{
     public function __construct($repository, $pid) {
         $this->repository = $repository;
         $this->pid = $pid; 
+    }
+    
+    public function exec(){
         $this->retrieve_islandora_object();
         if (in_array("ir:citationCModel", $this->object->models)){
             $this->retrieve_mods();
@@ -21,6 +24,7 @@ abstract class batch_edit_mods{
             if ($this->update_dc)
                 $this->ingest_dc();
         }
+        return 0;
     }
 
     protected function get_mods_content(){
