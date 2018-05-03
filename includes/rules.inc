@@ -13,12 +13,14 @@ abstract class batch_edit_mods{
         $this->repository = $repository;
         $this->pid = $pid; 
         $this->retrieve_islandora_object();
-        $this->retrieve_mods();
-        $this->retrieve_mods_content();
-        $this->edit_mods(); //To be implemented in subclasses
-        $this->ingest_mods();
-        if ($this->update_dc)
-            $this->ingest_dc();
+        if (in_array("ir:citationCModel", $this->object->models)){
+            $this->retrieve_mods();
+            $this->retrieve_mods_content();
+            $this->edit_mods(); //To be implemented in subclasses
+            $this->ingest_mods();
+            if ($this->update_dc)
+                $this->ingest_dc();
+        }
     }
 
     protected function get_mods_content(){
