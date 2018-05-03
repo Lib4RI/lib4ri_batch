@@ -19,12 +19,15 @@ abstract class batch_edit_mods{
         if (in_array("ir:citationCModel", $this->object->models)){
             $this->retrieve_mods();
             $this->retrieve_mods_content();
-            $this->edit_mods(); //To be implemented in subclasses
+            $ret = $this->edit_mods(); //To be implemented in subclasses
             $this->ingest_mods();
             if ($this->update_dc)
                 $this->ingest_dc();
         }
-        return 0;
+        else{
+            $ret = $this->get_pid().': Not a citation';
+        }
+        return $ret;
     }
 
     protected function get_mods_content(){
@@ -95,6 +98,10 @@ abstract class batch_edit_mods{
         return $processor->transformToXML($input);
     }
     
+    protected function get_pid(){
+        return $this->pid;
+    }
+    
     private function retrieve_ds($class_var, $ds_string){
         foreach ($this->object as $datastream) {
             if ($datastream->id === '$ds_string'){
@@ -114,9 +121,17 @@ abstract class batch_edit_mods{
 
 class test_edit extends batch_edit_mods{
     
-#    protected $update_dc = true;
+    protected $update_dc = false;
     
     protected function edit_mods(){
-        $this->set_mods_content(str_replace( 'nice joke', 'bsgd',   $this->get_mods_content()));
+        $old_content = $this->get_mods_content();
+        $new_content = str_replace( 'bsgd', 'nice joke',    $old_content);
+        
+        if ($new_content == $old_content)
+            return $this->get_pid().': Not edited';
+        else{
+            $this->set_mods_content($new_content);
+            return $this->get_pid().': Edited';
+        }
     }
 }

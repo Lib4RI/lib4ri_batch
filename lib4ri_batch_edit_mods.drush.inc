@@ -248,7 +248,9 @@ function lib4ri_batch_edit_mods_edit_single_mods_batch_operation($rule, $pid, &$
 function lib4ri_batch_edit_mods_edit_mods($rule, $repository, $pid){
     $class = $rule;
     $edit = new $class($repository, $pid);
-    $edit->exec();
+    return($edit->exec());
+    
+    
 //    new test_edit($repository, $pid);
 }
 
