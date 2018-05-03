@@ -38,7 +38,18 @@ function lib4ri_batch_edit_mods_drush_command() {
  * drush_[MODULE_NAME]_[COMMAND_NAME]().
  */
 function drush_lib4ri_batch_edit_mods_edit_mods($rule = null, $namespace = 'islandora') {
-    batch_set(lib4ri_batch_edit_mods_edit_mods_batch(drush_get_option('rule'), drush_get_option('namespace')));
+    $rule = drush_get_option('rule');
+    $rules = array();
+    foreach (get_declared_classes() as $class) {
+        if (is_subclass_of($class, batch_edit_mods))
+            $rules[] = $class;
+    }
+    
+    if (!in_array($rule, $rules)){
+        return 'Editing rule not defined!';
+    }
+    
+    batch_set(lib4ri_batch_edit_mods_edit_mods_batch($rule, drush_get_option('namespace')));
     drush_backend_batch_process();
 }
 
@@ -194,7 +205,18 @@ function lib4ri_batch_edit_mods_get_object_set_from_namespace($repository, $name
 /************************************************************************/
 
 function drush_lib4ri_batch_edit_mods_edit_single_mods($rule = null, $pid = null) {
-    batch_set(lib4ri_batch_edit_mods_edit_single_mods_batch(drush_get_option('rule'), drush_get_option('pid')));
+    $rule = drush_get_option('rule');
+    $rules = array();
+    foreach (get_declared_classes() as $class) {
+        if (is_subclass_of($class, batch_edit_mods))
+            $rules[] = $class;
+    }
+    
+    if (!in_array($rule, $rules)){
+        return 'Editing rule not defined!';
+    }
+    
+    batch_set(lib4ri_batch_edit_mods_edit_single_mods_batch($rule, drush_get_option('pid')));
     drush_backend_batch_process();
 }
 
@@ -224,7 +246,9 @@ function lib4ri_batch_edit_mods_edit_single_mods_batch_operation($rule, $pid, &$
 
 
 function lib4ri_batch_edit_mods_edit_mods($rule, $repository, $pid){
-    
-    new test_edit($repository, $pid);
+    $class = $rule;
+    $edit = new $class($repository, $pid);
+    $edit->exec();
+//    new test_edit($repository, $pid);
 }
 
