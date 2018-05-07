@@ -3,6 +3,7 @@
 abstract class batch_edit_mods{
     private   $repository;
     private   $pid;
+    private   $dry;
     private   $object;
     private   $mods;
     private   $dc;
@@ -10,18 +11,20 @@ abstract class batch_edit_mods{
     protected $ingest = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
-    public function __construct($repository, $pid) {
+    public function __construct($repository, $pid, $dry) {
         $this->repository = $repository;
-        $this->pid = $pid; 
+        $this->pid = $pid;
+        $this->dry = $dry;
     }
     
     public function exec(){
         $this->retrieve_islandora_object();
         if (in_array("ir:citationCModel", $this->object->models)){
             $this->retrieve_mods();
-            $this->retrieve_mods_content();
+            $this->retrieve_mods_content();            
             $ret = $this->edit_mods(); //To be implemented in subclasses
-            if ($this->ingest == true){
+            
+            if (($this->ingest == true) && ($this->dry == false)){
                 $this->ingest_mods();
                 if ($this->update_dc)
                     $this->ingest_dc();
@@ -30,6 +33,9 @@ abstract class batch_edit_mods{
         else{
             $ret = $this->get_pid().': Not a citation';
         }
+        if ($this->dry == true)
+            $ret="DRY RUN - ".$ret;
+            
         return $ret;
     }
 
