@@ -7,6 +7,7 @@ abstract class batch_edit_mods{
     private   $mods;
     private   $dc;
     private   $mods_content;
+    protected $ingest = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
     public function __construct($repository, $pid) {
@@ -20,9 +21,11 @@ abstract class batch_edit_mods{
             $this->retrieve_mods();
             $this->retrieve_mods_content();
             $ret = $this->edit_mods(); //To be implemented in subclasses
-            $this->ingest_mods();
-            if ($this->update_dc)
-                $this->ingest_dc();
+            if ($this->ingest == true){
+                $this->ingest_mods();
+                if ($this->update_dc)
+                    $this->ingest_dc();
+            }
         }
         else{
             $ret = $this->get_pid().': Not a citation';
@@ -125,12 +128,15 @@ class test_edit extends batch_edit_mods{
     
     protected function edit_mods(){
         $old_content = $this->get_mods_content();
-        $new_content = str_replace( 'bsgd', 'nice joke',    $old_content);
+        $new_content = str_replace( 'abc','bsgd',  $old_content);
         
-        if ($new_content == $old_content)
+        if ($new_content == $old_content){
+            $this->ingest = false;
             return $this->get_pid().': Not edited';
+        }
         else{
             $this->set_mods_content($new_content);
+            $this->ingest = true;
             return $this->get_pid().': Edited';
         }
     }
