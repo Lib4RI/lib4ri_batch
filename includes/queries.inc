@@ -1,5 +1,85 @@
 <?php
 
+abstract class get_pids{
+    protected $pids;
+    protected $pids_count;
+    
+    public function __construct($options) {
+        $this->options = $options;
+        $this->pids = $this->get_pid_set();
+        $this->pids_count = $this->get_pids_current_count();
+    }
+
+    public function get_pids_count(){
+        return $this->pids_count;
+    }
+    
+    protected function get_pids_current_count(){
+        return sizeof($this->pids);
+    }
+    
+    public function get_pid(){
+        var_dump($this->pids);
+        return array_pop($this->pids);
+    }
+    
+}
+
+class single extends get_pids{
+    
+    protected function get_pid_set(){
+        return [$this->options['pid']];
+    }
+}
+
+class textfile extends get_pids{
+        
+    protected function get_pid_set(){
+        return file($this->options['filename']);
+    }    
+}
+
+class name_space extends get_pids{
+    
+    protected function get_pid_set(){
+        return 0;
+    }
+}
+
+/**
+ * Gets the count of existing objects in the RI for the given namespace.
+ *
+ * @param IslandoraFedoraRepository $repository
+ *   The repository to query in.
+ * @param $source_namespace
+ *   The namespace to filter the query by.
+ *
+ * @return int
+ *   The number of objects in the RI for the given namespace.
+ */
+function get_object_count_from_namespace($repository, $namespace) {
+    $query = get_namespace_query($namespace);
+    return $repository->ri->countQuery($query, 'sparql');
+}
+
+/**
+ * Gets an object from the RI for the given namespace at the given offset.
+ *
+ * @param IslandoraFedoraRepository $repository
+ *   The repository to query in.
+ * @param string $source_namespace
+ *   The namespace to filter the query by.
+ * @param int $offset
+ *   The amount to offset the query by.
+ *
+ * @return array
+ *   An array representing the result of the query.
+ */
+function get_object_set_from_namespace($repository, $namespace, $offset) {
+    $query = get_namespace_query($namespace, $offset);
+    return $repository->ri->sparqlQuery($query, 1);
+}
+
 /**
  * Returns the appropriate SPARQL query for the source namespace and offset.
  *
@@ -55,38 +135,4 @@ OFFSET $offset
 EOQ;
     // Return the generated query.
     return $query;
-}
-
-/**
- * Gets the count of existing objects in the RI for the given namespace.
- *
- * @param IslandoraFedoraRepository $repository
- *   The repository to query in.
- * @param $source_namespace
- *   The namespace to filter the query by.
- *
- * @return int
- *   The number of objects in the RI for the given namespace.
- */
-function get_object_count_from_namespace($repository, $namespace) {
-    $query = get_namespace_query($namespace);
-    return $repository->ri->countQuery($query, 'sparql');
-}
-
-/**
- * Gets an object from the RI for the given namespace at the given offset.
- *
- * @param IslandoraFedoraRepository $repository
- *   The repository to query in.
- * @param string $source_namespace
- *   The namespace to filter the query by.
- * @param int $offset
- *   The amount to offset the query by.
- *
- * @return array
- *   An array representing the result of the query.
- */
-function get_object_set_from_namespace($repository, $namespace, $offset) {
-    $query = get_namespace_query($namespace, $offset);
-    return $repository->ri->sparqlQuery($query, 1);
 }
