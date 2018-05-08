@@ -1,24 +1,71 @@
 <?php
 abstract class command{
-    private   $pid;
-    private   $dry;
+    protected   $pid;
+    protected   $dry;
+    protected   $object;
+    protected   $message;
     
     public function __construct($pid, $dry) {
         $this->pid = $pid;
         $this->dry = $dry;
+        $this->message = '';
     }
 
-    abstract public function exec();
+    public function exec(){
+        $this->_dry_exec();
+        
+        if ($this->dry == false)
+            $this->_exec();
+        else
+            $this->message = "DRY RUN - ".$this->message;
+        
+        return $this->message;
+    }
+    
+    abstract protected function _dry_exec();
+    
+    abstract protected function _exec();
+        
+    protected function retrieve_islandora_object(){
+        $this->object = islandora_object_load($this->pid);
+    }  
+    
+    protected function get_pid(){
+        return $this->pid;
+    }
 }
 
-abstract class batch_edit_mods  extends command{ 
-    private   $object;
+class purge extends command{
+
+    protected function _dry_exec(){
+        $this->retrieve_islandora_object();
+        if (!$this->object)
+            $this->message = $this->get_pid().': object not found';
+        else
+            $this->message = $this->get_pid().': Purging...';
+    }
+
+    protected function _exec(){
+        $this->object->repository->purgeObject($this->pid);
+        $this->message.=' Purged';
+    }    
+}
+
+abstract class batch_edit_mods extends command{ 
+    
     private   $mods;
     private   $dc;
     private   $mods_content;
     protected $ingest = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
+    protected function _dry_exec(){
+        $this->retrieve_islandora_object();
+    }
+    
+    protected function _exec(){
+        return 0;
+    }
     
     public function exec(){
         $this->retrieve_islandora_object();
@@ -50,11 +97,7 @@ abstract class batch_edit_mods  extends command{
         $this->mods_content = $content;
     }
     
-    private function retrieve_islandora_object(){
-        $this->object = islandora_object_load($this->pid);
-    }
-    
-    
+        
     private function retrieve_mods(){
         foreach ($this->object as $datastream) {
             if ($datastream->id === 'MODS'){
@@ -108,10 +151,6 @@ abstract class batch_edit_mods  extends command{
         $processor->importStylesheet($xsl);
         
         return $processor->transformToXML($input);
-    }
-    
-    protected function get_pid(){
-        return $this->pid;
     }
     
     private function retrieve_ds($class_var, $ds_string){
