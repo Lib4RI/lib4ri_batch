@@ -4,19 +4,21 @@ abstract class command{
     protected   $dry;
     protected   $object;
     protected   $message;
+    protected   $stop;
     
     public function __construct($pid, $dry) {
         $this->pid = $pid;
         $this->dry = $dry;
         $this->message = '';
+        $this->stop = false;
     }
 
     public function exec(){
         $this->_dry_exec();
         
-        if ($this->dry == false)
+        if (($this->dry == false) && ($this->stop == false))
             $this->_exec();
-        else
+        if ($this->dry == true)
             $this->message = "DRY RUN - ".$this->message;
         
         return $this->message;
@@ -39,8 +41,10 @@ class purge extends command{
 
     protected function _dry_exec(){
         $this->retrieve_islandora_object();
-        if (!$this->object)
+        if (!$this->object){
             $this->message = $this->get_pid().': object not found';
+            $this->stop = true;
+        }
         else
             $this->message = $this->get_pid().': Purging...';
     }
