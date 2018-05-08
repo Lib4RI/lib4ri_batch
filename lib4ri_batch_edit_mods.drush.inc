@@ -82,10 +82,6 @@ function lib4ri_batch_edit_mods_edit_mods_batch_operation($pids, $pids_options, 
 //     module_load_include('inc', 'lib4ri_batch_edit_mods', 'includes/lib4ri_batch_edit_mods');
     $sandbox = &$context['sandbox'];
     // Establish the connection to tuque; this is where the magic starts.
-    $connection = islandora_get_tuque_connection();
-    $repository = $connection->repository;
-    $pids_options['repository'] = $repository;
-            
     // If this is our first pass through the batch operation, the batch context's
     // sandbox will be empty, so we know that we have variables to initialize.
     if (empty($sandbox)) {
