@@ -103,7 +103,6 @@ function lib4ri_batch_edit_mods_edit_mods_batch_operation($pids, $pids_options, 
     }
     // Grab the next object in the namespace.
     $pid = $sandbox['pids_class']->get_pid();
-    
     // Duplicate the object represented by the return value from the query.
     $context['message'] = lib4ri_batch_edit_mods_edit_mods($rule, $repository, $pid, $dry); //DO STUFF HERE!!!!
     // Increment the query offset, otherwise.

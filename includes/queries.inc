@@ -19,8 +19,7 @@ abstract class get_pids{
     }
     
     public function get_pid(){
-        var_dump($this->pids);
-        return array_pop($this->pids);
+        return trim(array_pop($this->pids),"\n\r");
     }
     
 }
