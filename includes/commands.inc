@@ -1,8 +1,17 @@
 <?php
-
-abstract class batch_edit_mods{
+abstract class command{
     private   $pid;
     private   $dry;
+    
+    public function __construct($pid, $dry) {
+        $this->pid = $pid;
+        $this->dry = $dry;
+    }
+
+    abstract public function exec();
+}
+
+abstract class batch_edit_mods  extends command{ 
     private   $object;
     private   $mods;
     private   $dc;
@@ -10,10 +19,6 @@ abstract class batch_edit_mods{
     protected $ingest = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
-    public function __construct($pid, $dry) {
-        $this->pid = $pid;
-        $this->dry = $dry;
-    }
     
     public function exec(){
         $this->retrieve_islandora_object();
