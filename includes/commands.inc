@@ -14,10 +14,18 @@ abstract class command{
     }
 
     public function exec(){
-        $this->_dry_exec();
+        $this->retrieve_islandora_object();
+        if (!$this->object){
+            $this->message = $this->get_pid().': object not found';
+            $this->stop = true;
+        }
+        
+        if ($this->stop == false)
+            $this->_dry_exec();
         
         if (($this->dry == false) && ($this->stop == false))
             $this->_exec();
+        
         if ($this->dry == true)
             $this->message = "DRY RUN - ".$this->message;
         
@@ -40,7 +48,7 @@ abstract class command{
 class purge extends command{
 
     protected function _dry_exec(){
-        $this->retrieve_islandora_object();
+//        $this->retrieve_islandora_object();
         if (!$this->object){
             $this->message = $this->get_pid().': object not found';
             $this->stop = true;
@@ -60,38 +68,42 @@ abstract class batch_edit_mods extends command{
     private   $mods;
     private   $dc;
     private   $mods_content;
+    private   $dc_content;
     protected $ingest = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
     protected function _dry_exec(){
-        $this->retrieve_islandora_object();
+//        $this->retrieve_islandora_object();
+        if (in_array("ir:citationCModel", $this->object->models)){
+            $this->retrieve_mods();
+            $this->retrieve_mods_content();
+            $this->mods_content = $this->edit_mods(); //To be implemented in subclasses
+            if ($this->mods_content == $this->mods->content){
+                $this->ingest = false;
+                $this->message = $this->get_pid().': Not edited';
+            }
+            else{
+                $this->ingest = true;
+                $this->message = $this->get_pid().': Edited';
+            }
+            if ($this->update_dc)
+                $this->edit_dc();
+        }
+        else{
+            $this->message = $this->get_pid().': Not a citation';
+            $this->stop = true;
+        }       
     }
     
     protected function _exec(){
-        return 0;
+        if ($this->ingest == true){
+            $this->ingest_mods();
+            if ($this->update_dc)
+                $this->ingest_dc();
+        }
+        $this->message.=" - Ingested";
     }
     
-    public function exec(){
-        $this->retrieve_islandora_object();
-        if (in_array("ir:citationCModel", $this->object->models)){
-            $this->retrieve_mods();
-            $this->retrieve_mods_content();            
-            $ret = $this->edit_mods(); //To be implemented in subclasses
-            
-            if (($this->ingest == true) && ($this->dry == false)){
-                $this->ingest_mods();
-                if ($this->update_dc)
-                    $this->ingest_dc();
-            }
-        }
-        else{
-            $ret = $this->get_pid().': Not a citation';
-        }
-        if ($this->dry == true)
-            $ret="DRY RUN - ".$ret;
-            
-        return $ret;
-    }
 
     protected function get_mods_content(){
         return $this->mods_content;
@@ -132,15 +144,20 @@ abstract class batch_edit_mods extends command{
         
 //        $this->retrieve_ds($this->dc, 'DC');
     }
+
     
-    private function ingest_dc(){
-        $this->retrieve_dc();        
-        $new_dc = static::runXSLTransform(array(
+    private function edit_dc(){
+        $this->retrieve_dc();
+        $this->dc_content = static::runXSLTransform(array(
             'xsl' => drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl',
             'input' => $this->get_mods_content(),
         ));
-        if ($new_dc) {
-            $this->dc->content = $new_dc;
+        
+    }
+    
+    private function ingest_dc(){
+        if (!($this->dc_content === $this->dc->content)) {
+            $this->dc->content = $this->dc_content;
         }
     }
 
@@ -179,17 +196,7 @@ class test_edit extends batch_edit_mods{
     protected $update_dc = false;
     
     protected function edit_mods(){
-        $old_content = $this->get_mods_content();
-        $new_content = str_replace( 'abc','bsgd',  $old_content);
+        return str_replace('bsgd', 'abc', $this->get_mods_content());
         
-        if ($new_content == $old_content){
-            $this->ingest = false;
-            return $this->get_pid().': Not edited';
-        }
-        else{
-            $this->set_mods_content($new_content);
-            $this->ingest = true;
-            return $this->get_pid().': Edited';
-        }
     }
 }
