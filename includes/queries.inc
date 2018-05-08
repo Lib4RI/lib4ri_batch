@@ -44,10 +44,10 @@ class name_space extends get_pids{
         $connection = islandora_get_tuque_connection();
         $repository = $connection->repository;
         
-        $n = $this->get_object_count_from_namespace($this->options['repository'], $this->options['namespace']);
+        $n = $this->get_object_count_from_namespace($repository, $this->options['namespace']);
          $pids = [];
          for ($ii = 1; $ii <= $n; $ii++) {
-             $temp = $this->get_object_set_from_namespace($this->options['repository'], $this->options['namespace'], $ii-1)[0]['pid']['value'];
+             $temp = $this->get_object_set_from_namespace($repository, $this->options['namespace'], $ii-1)[0]['pid']['value'];
              array_push($pids, $temp);
          }
         return array_reverse($pids);
