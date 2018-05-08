@@ -1,7 +1,6 @@
 <?php
 
 abstract class batch_edit_mods{
-    private   $repository;
     private   $pid;
     private   $dry;
     private   $object;
@@ -11,8 +10,7 @@ abstract class batch_edit_mods{
     protected $ingest = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
-    public function __construct($repository, $pid, $dry) {
-        $this->repository = $repository;
+    public function __construct($pid, $dry) {
         $this->pid = $pid;
         $this->dry = $dry;
     }

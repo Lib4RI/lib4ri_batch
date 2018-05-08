@@ -99,7 +99,7 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
     // Grab the next object in the namespace.
     $pid = $sandbox['pids_class']->get_pid();
     // Duplicate the object represented by the return value from the query.
-    $context['message'] = lib4ri_batch_exec_command($command, $repository, $pid, $dry); //DO STUFF HERE!!!!
+    $context['message'] = lib4ri_batch_exec_command($command, $pid, $dry); //DO STUFF HERE!!!!
     // Increment the query offset, otherwise.
     $sandbox['current_index']++;
     // Finish if this was the last object.
@@ -117,9 +117,9 @@ function read_options($options_str){
     return $options;
 }
 
-function lib4ri_batch_exec_command($rule, $repository, $pid, $dry){
+function lib4ri_batch_exec_command($rule, $pid, $dry){
     $class = $rule;
-    $edit = new $class($repository, $pid, $dry);
+    $edit = new $class($pid, $dry);
     return($edit->exec());
     
     
