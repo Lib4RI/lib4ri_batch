@@ -1,8 +1,7 @@
 <?php
 
-//include_once "includes/lib4ri_batch_edit_mods.inc";
-include_once "includes/queries.inc";
-include_once "includes/rules.inc";
+include_once "includes/pid_set.inc";
+include_once "includes/commands.inc";
 
 /**
  * @file
