@@ -1,2 +1,2 @@
-# lib4ri_batch_edit_mods
+# lib4ri_batch
 Batch edit MODS files
