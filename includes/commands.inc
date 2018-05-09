@@ -44,6 +44,18 @@ abstract class command{
     protected function get_pid(){
         return $this->pid;
     }
+    
+    protected function has_children (){
+        $query = <<<EOQ
+ASK {
+  ?subject <fedora-model:hasModel> <info:fedora/fedora-system:FedoraObject-3.0> ;
+           ?pred <info:fedora/$this->pid> .
+}
+EOQ;
+        
+        $child_results = $this->object->repository->ri->sparqlQuery($query);
+        return $child_results[0]['k0']['value'] == 'true';
+    }
 }
 
 class purge extends command{
@@ -54,8 +66,13 @@ class purge extends command{
             $this->message = $this->get_pid().': object not found';
             $this->stop = true;
         }
-        else
+        elseif ($this->has_children()){
+            $this->message = $this->get_pid().': Has children. Cannot purge';
+            $this->stop = true;
+        }
+        else{
             $this->message = $this->get_pid().': Purging...';
+        }
     }
 
     protected function _exec(){
