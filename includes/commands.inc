@@ -86,9 +86,16 @@ abstract class batch_edit_mods extends command{
             else{
                 $this->edited = true;
                 $this->message = $this->get_pid().': Edited';
+                if ($this->options['log_ds'] == true){
+                    $this->log_ds($this->mods_content,'MODS');
+                }
             }
-            if ($this->update_dc)
+            if ($this->update_dc){
                 $this->edit_dc();
+                if ($this->options['log_ds'] == true){
+                    $this->log_ds($this->dc_content,'DC');
+                }
+            }
         }
         else{
             $this->message = $this->get_pid().': Not a citation';
@@ -183,6 +190,12 @@ abstract class batch_edit_mods extends command{
             }
         }
     }  
+    
+    private function log_ds($ds_content, $ds_name){
+        $filename = date('Y-m-d_H-i-s').'_'.$this->pid.'_'.$ds_name;
+        $fid = fopen($filename, 'w');
+        fwrite($fid, $ds_content);
+    }
 }
 
 
@@ -194,10 +207,10 @@ abstract class batch_edit_mods extends command{
 
 class test_edit extends batch_edit_mods{
     
-    protected $update_dc = false;
+    protected $update_dc = true;
     
     protected function edit_mods(){
-        return str_replace('bsgd', 'abc', $this->get_mods_content());
+        return str_replace('bsgd','abc',  $this->get_mods_content());
         
     }
 }

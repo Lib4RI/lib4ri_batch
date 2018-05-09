@@ -50,7 +50,7 @@ function drush_lib4ri_batch_dora_batch($pids = null, $pids_options = null, $comm
         return 'Command unknown!';
     }
     
-    batch_set(lib4ri_batch_dora_batch_batch(drush_get_option('pids'), read_options(drush_get_option('pids_options')), $command, read_options(drush_get_option('commands_options')), $dry));
+    batch_set(lib4ri_batch_dora_batch_batch(drush_get_option('pids'), read_options(drush_get_option('pids_options')), $command, read_options(drush_get_option('command_options')), $dry));
     drush_backend_batch_process();
 }
 
