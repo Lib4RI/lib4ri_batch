@@ -6,9 +6,10 @@ abstract class command{
     protected   $message;
     protected   $stop;
     
-    public function __construct($pid, $dry) {
+    public function __construct($pid, $dry, $options) {
         $this->pid = $pid;
         $this->dry = $dry;
+        $this->options = $options;
         $this->message = '';
         $this->stop = false;
     }
