@@ -70,7 +70,7 @@ abstract class batch_edit_mods extends command{
     private   $dc;
     private   $mods_content;
     private   $dc_content;
-    protected $ingest = false;
+    protected $edited = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
     protected function _dry_exec(){
@@ -80,11 +80,11 @@ abstract class batch_edit_mods extends command{
             $this->retrieve_mods_content();
             $this->mods_content = $this->edit_mods(); //To be implemented in subclasses
             if ($this->mods_content == $this->mods->content){
-                $this->ingest = false;
+                $this->edited = false;
                 $this->message = $this->get_pid().': Not edited';
             }
             else{
-                $this->ingest = true;
+                $this->edited = true;
                 $this->message = $this->get_pid().': Edited';
             }
             if ($this->update_dc)
@@ -97,7 +97,7 @@ abstract class batch_edit_mods extends command{
     }
     
     protected function _exec(){
-        if ($this->ingest == true){
+        if ($this->edited == true){
             $this->ingest_mods();
             if ($this->update_dc)
                 $this->ingest_dc();
