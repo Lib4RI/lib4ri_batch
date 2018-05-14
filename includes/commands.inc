@@ -58,6 +58,12 @@ EOQ;
     }
 }
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+
 class purge extends command{
 
     protected function _dry_exec(){
@@ -81,6 +87,41 @@ class purge extends command{
     }    
 }
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class show_type extends command{
+    
+    protected $update_dc = false;
+    
+    private function get_pub_type(AbstractObject $object) {
+        $dom = new DOMDocument();
+        $dom->loadXML($object['MODS']->content);
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('mods', 'http://loc.gov/mods/v3');
+        
+        
+        $mods = $xpath->query('//mods:mods');
+        $type = $xpath->evaluate('normalize-space(concat(mods:genre[@authorityURI="info:eu-repo/semantics"], " "))', $mods[0]);
+        return $type;
+        
+    }
+    protected function _dry_exec(){
+        $this->message.= $this->get_pid().": ".$this->get_pub_type($this->object);
+    }
+    
+    protected function _exec(){
+        
+    }
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
 abstract class batch_edit_mods extends command{ 
     
     private   $mods;
@@ -221,7 +262,6 @@ abstract class batch_edit_mods extends command{
  * 
  * 
 ********************************************************************/
-
 class test_edit extends batch_edit_mods{
     
     protected $update_dc = true;
@@ -231,3 +271,5 @@ class test_edit extends batch_edit_mods{
         
     }
 }
+
+
