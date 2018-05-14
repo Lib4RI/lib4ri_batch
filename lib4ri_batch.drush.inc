@@ -109,7 +109,7 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
 
 function read_options($options_str){
     $options = [];
-    $options_str_a = explode(';',$options_str);
+    $options_str_a = explode('|',$options_str);
     foreach ($options_str_a as $option){
         $kv = explode('=',$option);
         $options[$kv[0]]=$kv[1];

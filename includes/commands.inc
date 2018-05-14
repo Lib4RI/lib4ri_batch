@@ -98,7 +98,7 @@ class show_type extends command{
         $dom = new DOMDocument();
         $dom->loadXML($object['MODS']->content);
         $xpath = new DOMXPath($dom);
-        $xpath->registerNamespace('mods', 'http://loc.gov/mods/v3');
+        $xpath->registerNamespace('m', 'http://loc.gov/mods/v3');
         
         
         $mods = $xpath->query('//mods:mods');
@@ -111,7 +111,7 @@ class show_type extends command{
     }
     
     protected function _exec(){
-        
+        return 0;
     }
 }
 
@@ -126,6 +126,8 @@ abstract class batch_edit_mods extends command{
     private   $dc;
     private   $mods_content;
     private   $dc_content;
+    private   $dom;
+    private   $xpath;
     protected $edited = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
     
@@ -208,7 +210,24 @@ abstract class batch_edit_mods extends command{
         
 //        $this->retrieve_ds($this->dc, 'DC');
     }
-
+    
+    protected function set_dom(){
+        $this->dom = new DOMDocument();
+        $this->dom->loadXML($this->mods_content);
+    }
+    
+    protected function get_dom(){
+        return $this->dom;
+    }
+    
+    protected function set_xpath(){
+        $this->xpath = new DOMXPath($this->dom);
+        $this->xpath->registerNamespace('mods', 'http://loc.gov/mods/v3');
+    }
+    
+    protected function get_xpath(){
+        return $this->xpath;
+    }
     
     private function edit_dc(){
         $this->retrieve_dc();
@@ -255,6 +274,26 @@ abstract class batch_edit_mods extends command{
 }
 
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class update_publisher extends batch_edit_mods{
+    protected $update_dc = true;
+    
+    protected function edit_mods(){
+        $this->set_dom();
+        $this->set_xpath();
+        $section = $this->get_xpath()->query('//mods:mods/mods:relatedItem [@type="host"]')[0];
+        $publisher = $section->getElementsByTagName('publisher')->item(0)->nodeValue;
+        if ($publisher == $this->options['current']){
+            $section->getElementsByTagName('publisher')->item(0)->nodeValue = $this->options['new'];
+        } 
+        return $this->get_dom()->saveXML();
+    }
+    
+}
 /********************************************************************
  * 
  * 
