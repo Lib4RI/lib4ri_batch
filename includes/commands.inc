@@ -94,8 +94,6 @@ class purge extends command{
  ********************************************************************/
 class show_type extends command{
     
-    protected $update_dc = false;
-    
     private function get_pub_type(AbstractObject $object) {
         $dom = new DOMDocument();
         $dom->loadXML($object['MODS']->content);
