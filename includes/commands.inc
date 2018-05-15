@@ -294,7 +294,13 @@ class update_publisher extends batch_edit_mods{
         $this->set_dom();
         $this->set_xpath();
         $section = $this->get_xpath()->query('//mods:mods/mods:relatedItem [@type="host"]')[0];
-        $publisher = $section->getElementsByTagName('publisher')->item(0)->nodeValue;
+        if($section){
+            $publisher = $section->getElementsByTagName('publisher')->item(0)->nodeValue;
+        }
+        else {
+            return $this->get_mods_content();
+        }
+        
         if ($publisher == $this->options['current']){
             $section->getElementsByTagName('publisher')->item(0)->nodeValue = $this->options['new'];
         } 
