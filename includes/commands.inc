@@ -96,13 +96,18 @@ class show_type extends command{
     
     private function get_pub_type(AbstractObject $object) {
         $dom = new DOMDocument();
-        $dom->loadXML($object['MODS']->content);
-        $xpath = new DOMXPath($dom);
-        $xpath->registerNamespace('m', 'http://loc.gov/mods/v3');
-        
-        
-        $mods = $xpath->query('//mods:mods');
-        $type = $xpath->evaluate('normalize-space(concat(mods:genre[@authorityURI="info:eu-repo/semantics"], " "))', $mods[0]);
+        $mods = $object['MODS']->content;
+        if ($mods){
+            $dom->loadXML($object['MODS']->content);
+            $xpath = new DOMXPath($dom);
+            $xpath->registerNamespace('m', 'http://loc.gov/mods/v3');
+            
+            
+            $mods = $xpath->query('//mods:mods');
+            $type = $xpath->evaluate('normalize-space(concat(mods:genre[@authorityURI="info:eu-repo/semantics"], " "))', $mods[0]);
+        }
+        else
+            $type = 'WARNING: No MODS!!!';
         return $type;
         
     }
