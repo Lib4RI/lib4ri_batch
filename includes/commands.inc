@@ -140,17 +140,18 @@ abstract class batch_edit_mods extends command{
             $this->mods_content = $this->edit_mods(); //To be implemented in subclasses
             if ($this->mods_content == $this->mods->content){
                 $this->edited = false;
-                $this->message = $this->get_pid().': Not edited';
+                $this->message = $this->get_pid().': MODS not edited';
             }
             else{
                 $this->edited = true;
-                $this->message = $this->get_pid().': Edited';
+                $this->message = $this->get_pid().': MODS edited';
                 if ($this->options['log_ds'] == true){
                     $this->log_ds($this->mods_content,'MODS');
                 }
             }
-            if ($this->update_dc){
+            if ($this->update_dc && $this->edited){
                 $this->edit_dc();
+                $this->message.=', DC regenerated';
                 if ($this->options['log_ds'] == true){
                     $this->log_ds($this->dc_content,'DC');
                 }
@@ -167,8 +168,10 @@ abstract class batch_edit_mods extends command{
             $this->ingest_mods();
             if ($this->update_dc)
                 $this->ingest_dc();
+            $this->message.=" - Ingested";
         }
-        $this->message.=" - Ingested";
+        else 
+            $this->message.=" - Not ingested";
     }
     
 
