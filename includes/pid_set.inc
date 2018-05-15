@@ -38,6 +38,42 @@ class textfile extends get_pids{
     }    
 }
 
+class pubtype extends get_pids{
+    
+    protected function get_pid_set(){
+        $namespace = 'eawag';
+        $content_model = 'ir:citationCModel';
+        $collection_pid = 'eawag:publications';
+        $genre = $this->options['type'];
+        
+        $qp = new IslandoraSolrQueryProcessor();
+        $qp->buildQuery('PID:' . $namespace . '\:*');
+        $qp->solrParams['fl'] = 'PID';
+        $qp->solrParams['fq'] = array(
+            'RELS_EXT_hasModel_uri_ms:"info:fedora/' . $content_model . '"',
+            'RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/' . $collection_pid . '"',
+            'mods_genre_ms:"' . $genre . '"',
+        );
+        
+            
+        // Lib4ri appends a number to the id of PDF datastreams beyond the first.
+        // look for a datastream with the pattern PDF + any other character to
+        // determine multiple PDFs.
+//         $qp->solrParams['fq'][] = format_string('-!field:/!prefix[0-9A-Za-z]+/', array(
+//             '!field' => 'fedora_datastreams_ms',
+//             '!prefix' => variable_get('lib4ridora_extra_pdf_datastream_prefix', 'PDF'),
+//         ));
+    
+        $qp->solrParams['facet'] = 'false';
+        $qp->solrLimit = 100000000;
+        $qp->executeQuery(TRUE, FALSE);
+        $results = $qp->islandoraSolrResult['response']['objects'];
+        var_dump($qp);
+        var_dump($results);
+    }
+}
+
+
 class name_space extends get_pids{
     
     protected function get_pid_set(){
