@@ -130,6 +130,7 @@ abstract class batch_edit_mods extends command{
     private   $xpath;
     protected $edited = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
+    protected $working_dir;
     
     protected function _dry_exec(){
 //        $this->retrieve_islandora_object();
@@ -268,7 +269,11 @@ abstract class batch_edit_mods extends command{
     
     private function log_ds($ds_content, $ds_name){
         $filename = date('Y-m-d_H-i-s').'_'.$this->pid.'_'.$ds_name;
-        $fid = fopen($filename, 'w');
+        if ($this->options['wd'])
+            $wd = $this->options['wd'].'/';
+        else
+            $wd = null;
+        $fid = fopen($wd.$filename, 'w');
         fwrite($fid, $ds_content);
     }
 }
