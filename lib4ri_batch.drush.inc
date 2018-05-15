@@ -113,6 +113,10 @@ function read_options($options_str){
     foreach ($options_str_a as $option){
         $kv = explode('=',$option);
         $options[$kv[0]]=$kv[1];
+        if ($kv[1] == 'true')
+            $options[$kv[0]]=true;
+        if ($kv[1] == 'false')
+            $options[$kv[0]]=false;                
     }
     return $options;
 }
