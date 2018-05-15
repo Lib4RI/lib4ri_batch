@@ -301,7 +301,6 @@ class update_publisher extends batch_edit_mods{
         }
         
         if ($publisher == $this->options['current']){
-            var_dump($publisher);
             $section->getElementsByTagName('publisher')->item(0)->nodeValue = $this->options['new'];
             return $this->get_dom()->saveXML();
         } 
