@@ -146,14 +146,16 @@ abstract class batch_edit_mods extends command{
                 $this->edited = true;
                 $this->message = $this->get_pid().': MODS edited';
                 if ($this->options['log_ds'] == true){
-                    $this->log_ds($this->mods_content,'MODS');
+                    $this->log_ds($this->mods_content,'MODS_new');
+                    $this->log_ds($this->mods->content,'MODS_old');
                 }
             }
             if ($this->update_dc && $this->edited){
                 $this->edit_dc();
                 $this->message.=', DC regenerated';
                 if ($this->options['log_ds'] == true){
-                    $this->log_ds($this->dc_content,'DC');
+                    $this->log_ds($this->dc_content,'DC_new');
+                    $this->log_ds($this->dc->content,'DC_old');
                 }
             }
         }
@@ -297,14 +299,13 @@ class update_publisher extends batch_edit_mods{
         if($section){
             $publisher = $section->getElementsByTagName('publisher')->item(0)->nodeValue;
         }
-        else {
-            return $this->get_mods_content();
-        }
         
         if ($publisher == $this->options['current']){
+            var_dump($publisher);
             $section->getElementsByTagName('publisher')->item(0)->nodeValue = $this->options['new'];
+            return $this->get_dom()->saveXML();
         } 
-        return $this->get_dom()->saveXML();
+        return $this->get_mods_content();
     }
     
 }
