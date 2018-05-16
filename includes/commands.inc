@@ -313,6 +313,54 @@ class update_publisher extends batch_edit_mods{
     }
     
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class update_dep_name extends batch_edit_mods{
+    protected $update_dc = false;
+    
+    protected function edit_mods(){
+        $this->set_dom();
+        $this->set_xpath();
+        $sections = $this->get_xpath()->query('//mods:mods/mods:name [@type="personal"]');
+          
+        $edited = false;
+        $authors = [];
+        foreach ($sections as $section){
+            if ($section->getElementsByTagName('roleTerm')->item(0)->nodeValue == 'author'){
+                $affiliation = $section->getElementsByTagName('affiliation')->item(0)->nodeValue;
+                if ($affiliation == $this->options['current']){
+                    $section->getElementsByTagName('affiliation')->item(0)->nodeValue = $this->options['new'];
+//                     var_dump($section->getElementsByTagName('nameIdentifier')->item(0)->nodeType);
+                     var_dump($section->getElementsByTagName('nameIdentifier')->item(1)->getAttribute('type'));
+                    $edited = true;
+                }
+            }
+        }
+        
+        if ($edited)
+            return $this->get_dom()->saveXML();
+        else
+            return $this->get_mods_content();
+    }
+    
+    
+//     protected function _dry_exec(){
+//         parent::_dry_exec();
+        
+//     }
+    
+//     protected function _exec(){
+//         parent::_exec();
+        
+//     }
+    
+}
+
+
 /********************************************************************
  * 
  * 
