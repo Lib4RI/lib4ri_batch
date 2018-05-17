@@ -34,7 +34,7 @@ class single extends get_pids{
 class textfile extends get_pids{
         
     protected function get_pid_set(){
-        return file($this->options['filename']);
+        return array_reverse(array_unique(file($this->options['filename'])));
     }    
 }
 
