@@ -285,6 +285,7 @@ abstract class batch_edit_mods extends command{
             $wd = null;
         $fid = fopen($wd.$filename, 'w');
         fwrite($fid, $ds_content);
+        fclose($fid);
     }
 }
 
@@ -334,30 +335,37 @@ class update_dep_name extends batch_edit_mods{
                 $affiliation = $section->getElementsByTagName('affiliation')->item(0)->nodeValue;
                 if ($affiliation == $this->options['current']){
                     $section->getElementsByTagName('affiliation')->item(0)->nodeValue = $this->options['new'];
-//                     var_dump($section->getElementsByTagName('nameIdentifier')->item(0)->nodeType);
-                     var_dump($section->getElementsByTagName('nameIdentifier')->item(1)->getAttribute('type'));
+                    $elements = $section->getElementsByTagName('nameIdentifier');
+                    foreach ($elements as $element){
+                        if ($element->getAttribute('type')=='authorId'){
+                            array_push($authors, $element->nodeValue);
+                        }
+                    }
                     $edited = true;
                 }
             }
         }
         
+        $this->save_authors($authors);
         if ($edited)
             return $this->get_dom()->saveXML();
         else
             return $this->get_mods_content();
     }
     
-    
-//     protected function _dry_exec(){
-//         parent::_dry_exec();
+    private function save_authors($authors){
+        $filename = $this->options['authors_file'];
+        if ($this->options['wd'])
+            $wd = $this->options['wd'].'/';
+        else
+            $wd = null;
         
-//     }
-    
-//     protected function _exec(){
-//         parent::_exec();
-        
-//     }
-    
+        $fid = fopen($wd.$filename, 'w');
+        foreach ($authors as $author){
+            fwrite($fid, $author."\n");
+        }
+        fclose($fid);
+    }    
 }
 
 
