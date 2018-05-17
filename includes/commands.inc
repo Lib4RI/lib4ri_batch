@@ -135,6 +135,8 @@ abstract class batch_edit_mxds extends command{
     private   $xpath;
     protected $edited = false;
     protected $update_dc = false; //To be overridden in subclasses if DC update is required
+    protected $mxds_type = ''; //To be overridden in subclasses
+    protected $mxds_namespaceURI = ''; //To be overridden in subclasses
     protected $working_dir;
     
     protected function _dry_exec(){
@@ -145,14 +147,14 @@ abstract class batch_edit_mxds extends command{
             $this->mxds_content = $this->edit_mxds(); //To be implemented in subclasses
             if ($this->mxds_content == $this->mxds->content){
                 $this->edited = false;
-                $this->message = $this->get_pid().': MODS not edited';
+                $this->message = $this->get_pid().": $this->$mxds_type not edited";
             }
             else{
                 $this->edited = true;
-                $this->message = $this->get_pid().': MODS edited';
+                $this->message = $this->get_pid().": $this->$mxds_type edited";
                 if ($this->options['log_ds'] == true){
-                    $this->log_ds($this->mxds_content,'MODS_new');
-                    $this->log_ds($this->mxds->content,'MODS_old');
+                    $this->log_ds($this->mxds_content,$this->$mxds_type.'_new');
+                    $this->log_ds($this->mxds->content,$this->$mxds_type.'_old');
                 }
             }
             if ($this->update_dc && $this->edited){
@@ -193,7 +195,7 @@ abstract class batch_edit_mxds extends command{
         
     private function retrieve_mxds(){
         foreach ($this->object as $datastream) {
-            if ($datastream->id === 'MODS'){
+            if ($datastream->id === $this->$mxds_type){
                 $this->mxds = $datastream;
                 break;
             }
@@ -233,17 +235,20 @@ abstract class batch_edit_mxds extends command{
     
     protected function set_xpath(){
         $this->xpath = new DOMXPath($this->dom);
-        $this->xpath->registerNamespace('mods', 'http://loc.gov/mods/v3');
+        $this->xpath->registerNamespace(strtolower($this->$mxds_type), $this->mxds_namespaceURI);
     }
     
     protected function get_xpath(){
         return $this->xpath;
     }
     
+    abstract protected function get_mxds_to_dc();
+    
     private function edit_dc(){
         $this->retrieve_dc();
         $this->dc_content = static::runXSLTransform(array(
-            'xsl' => drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl',
+            'xsl' => $this->get_mxds_to_dc(),
+//            'xsl' => drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl',
             'input' => $this->get_mxds_content(),
         ));
         
@@ -289,13 +294,41 @@ abstract class batch_edit_mxds extends command{
     }
 }
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+abstract class batch_edit_mods extends batch_edit_mxds{
+    protected $mxds_type = 'MODS'; //To be overridden in subclasses
+    protected $mxds_namespaceURI = 'http://loc.gov/mods/v3'; //To be overridden in subclasses
+    
+    function get_mxds_to_dc(){
+        return drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl';
+    }
+}
 
 /********************************************************************
  *
  *
  *
  ********************************************************************/
-class update_publisher extends batch_edit_mxds{
+abstract class batch_edit_mads extends batch_edit_mxds{
+    protected $mxds_type = 'MADS'; //To be overridden in subclasses
+    protected $mxds_namespaceURI = ''; //To be overridden in subclasses
+
+    function get_mxds_to_dc(){
+        return 0;
+    }
+    
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class update_publisher extends batch_edit_mods{
     protected $update_dc = true;
     
     protected function edit_mxds(){
@@ -320,7 +353,7 @@ class update_publisher extends batch_edit_mxds{
  *
  *
  ********************************************************************/
-class update_dep_name extends batch_edit_mxds{
+class update_dep_name extends batch_edit_mods{
     protected $update_dc = false;
     
     protected function edit_mxds(){
@@ -374,7 +407,7 @@ class update_dep_name extends batch_edit_mxds{
  * 
  * 
 ********************************************************************/
-class test_edit extends batch_edit_mxds{
+class test_edit extends batch_edit_mods{
     
     protected $update_dc = true;
     
