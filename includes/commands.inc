@@ -125,11 +125,11 @@ class show_type extends command{
  *
  *
  ********************************************************************/
-abstract class batch_edit_mods extends command{ 
+abstract class batch_edit_mxds extends command{ 
     
-    private   $mods;
+    private   $mxds;
     private   $dc;
-    private   $mods_content;
+    private   $mxds_content;
     private   $dc_content;
     private   $dom;
     private   $xpath;
@@ -140,10 +140,10 @@ abstract class batch_edit_mods extends command{
     protected function _dry_exec(){
 //        $this->retrieve_islandora_object();
         if (in_array("ir:citationCModel", $this->object->models)){
-            $this->retrieve_mods();
-            $this->retrieve_mods_content();
-            $this->mods_content = $this->edit_mods(); //To be implemented in subclasses
-            if ($this->mods_content == $this->mods->content){
+            $this->retrieve_mxds();
+            $this->retrieve_mxds_content();
+            $this->mxds_content = $this->edit_mxds(); //To be implemented in subclasses
+            if ($this->mxds_content == $this->mxds->content){
                 $this->edited = false;
                 $this->message = $this->get_pid().': MODS not edited';
             }
@@ -151,8 +151,8 @@ abstract class batch_edit_mods extends command{
                 $this->edited = true;
                 $this->message = $this->get_pid().': MODS edited';
                 if ($this->options['log_ds'] == true){
-                    $this->log_ds($this->mods_content,'MODS_new');
-                    $this->log_ds($this->mods->content,'MODS_old');
+                    $this->log_ds($this->mxds_content,'MODS_new');
+                    $this->log_ds($this->mxds->content,'MODS_old');
                 }
             }
             if ($this->update_dc && $this->edited){
@@ -172,7 +172,7 @@ abstract class batch_edit_mods extends command{
     
     protected function _exec(){
         if ($this->edited == true){
-            $this->ingest_mods();
+            $this->ingest_mxds();
             if ($this->update_dc)
                 $this->ingest_dc();
             $this->message.=" - Ingested";
@@ -182,33 +182,33 @@ abstract class batch_edit_mods extends command{
     }
     
 
-    protected function get_mods_content(){
-        return $this->mods_content;
+    protected function get_mxds_content(){
+        return $this->mxds_content;
     }
     
-    protected function set_mods_content($content){
-        $this->mods_content = $content;
+    protected function set_mxds_content($content){
+        $this->mxds_content = $content;
     }
     
         
-    private function retrieve_mods(){
+    private function retrieve_mxds(){
         foreach ($this->object as $datastream) {
             if ($datastream->id === 'MODS'){
-                $this->mods = $datastream;
+                $this->mxds = $datastream;
                 break;
             }
         }        
         //$this->retrieve_ds($this->mods, 'MODS');
     }
 
-    private function retrieve_mods_content(){
-        $this->mods_content = $this->mods->content;
+    private function retrieve_mxds_content(){
+        $this->mxds_content = $this->mxds->content;
     }
     
-    abstract protected function edit_mods();
+    abstract protected function edit_mxds();
     
-    private function ingest_mods(){
-        $this->mods->content = $this->mods_content;
+    private function ingest_mxds(){
+        $this->mxds->content = $this->mxds_content;
     }
 
     private function retrieve_dc(){
@@ -224,7 +224,7 @@ abstract class batch_edit_mods extends command{
     
     protected function set_dom(){
         $this->dom = new DOMDocument();
-        $this->dom->loadXML($this->mods_content);
+        $this->dom->loadXML($this->mxds_content);
     }
     
     protected function get_dom(){
@@ -244,7 +244,7 @@ abstract class batch_edit_mods extends command{
         $this->retrieve_dc();
         $this->dc_content = static::runXSLTransform(array(
             'xsl' => drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl',
-            'input' => $this->get_mods_content(),
+            'input' => $this->get_mxds_content(),
         ));
         
     }
@@ -295,10 +295,10 @@ abstract class batch_edit_mods extends command{
  *
  *
  ********************************************************************/
-class update_publisher extends batch_edit_mods{
+class update_publisher extends batch_edit_mxds{
     protected $update_dc = true;
     
-    protected function edit_mods(){
+    protected function edit_mxds(){
         $this->set_dom();
         $this->set_xpath();
         $section = $this->get_xpath()->query('//mods:mods/mods:relatedItem [@type="host"]')[0];
@@ -310,7 +310,7 @@ class update_publisher extends batch_edit_mods{
             $section->getElementsByTagName('publisher')->item(0)->nodeValue = $this->options['new'];
             return $this->get_dom()->saveXML();
         } 
-        return $this->get_mods_content();
+        return $this->get_mxds_content();
     }
     
 }
@@ -320,10 +320,10 @@ class update_publisher extends batch_edit_mods{
  *
  *
  ********************************************************************/
-class update_dep_name extends batch_edit_mods{
+class update_dep_name extends batch_edit_mxds{
     protected $update_dc = false;
     
-    protected function edit_mods(){
+    protected function edit_mxds(){
         $this->set_dom();
         $this->set_xpath();
         $sections = $this->get_xpath()->query('//mods:mods/mods:name [@type="personal"]');
@@ -350,7 +350,7 @@ class update_dep_name extends batch_edit_mods{
         if ($edited)
             return $this->get_dom()->saveXML();
         else
-            return $this->get_mods_content();
+            return $this->get_mxds_content();
     }
     
     private function save_authors($authors){
@@ -374,12 +374,12 @@ class update_dep_name extends batch_edit_mods{
  * 
  * 
 ********************************************************************/
-class test_edit extends batch_edit_mods{
+class test_edit extends batch_edit_mxds{
     
     protected $update_dc = true;
     
-    protected function edit_mods(){
-        return str_replace('bsgd','abc',  $this->get_mods_content());
+    protected function edit_mxds(){
+        return str_replace('bsgd','abc',  $this->get_mxds_content());
         
     }
 }
