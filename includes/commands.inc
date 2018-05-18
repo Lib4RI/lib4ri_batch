@@ -147,14 +147,14 @@ abstract class batch_edit_mxds extends command{
             $this->mxds_content = $this->edit_mxds(); //To be implemented in subclasses
             if ($this->mxds_content == $this->mxds->content){
                 $this->edited = false;
-                $this->message = $this->get_pid().": $this->$mxds_type not edited";
+                $this->message = $this->get_pid().": $this->mxds_type not edited";
             }
             else{
                 $this->edited = true;
-                $this->message = $this->get_pid().": $this->$mxds_type edited";
+                $this->message = $this->get_pid().": $this->mxds_type edited";
                 if ($this->options['log_ds'] == true){
-                    $this->log_ds($this->mxds_content,$this->$mxds_type.'_new');
-                    $this->log_ds($this->mxds->content,$this->$mxds_type.'_old');
+                    $this->log_ds($this->mxds_content,$this->mxds_type.'_new');
+                    $this->log_ds($this->mxds->content,$this->mxds_type.'_old');
                 }
             }
             if ($this->update_dc && $this->edited){
@@ -195,7 +195,7 @@ abstract class batch_edit_mxds extends command{
         
     private function retrieve_mxds(){
         foreach ($this->object as $datastream) {
-            if ($datastream->id === $this->$mxds_type){
+            if ($datastream->id === $this->mxds_type){
                 $this->mxds = $datastream;
                 break;
             }
@@ -235,7 +235,7 @@ abstract class batch_edit_mxds extends command{
     
     protected function set_xpath(){
         $this->xpath = new DOMXPath($this->dom);
-        $this->xpath->registerNamespace(strtolower($this->$mxds_type), $this->mxds_namespaceURI);
+        $this->xpath->registerNamespace(strtolower($this->mxds_type), $this->mxds_namespaceURI);
     }
     
     protected function get_xpath(){
