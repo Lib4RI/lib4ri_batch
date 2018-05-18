@@ -353,7 +353,7 @@ class update_publisher extends batch_edit_mods{
  *
  *
  ********************************************************************/
-class update_dep_name extends batch_edit_mods{
+class update_cit_dep_name extends batch_edit_mods{
     protected $update_dc = false;
     
     protected function edit_mxds(){
