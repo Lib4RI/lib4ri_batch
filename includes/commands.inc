@@ -300,8 +300,8 @@ abstract class batch_edit_mxds extends command{
  *
  ********************************************************************/
 abstract class batch_edit_mods extends batch_edit_mxds{
-    protected $mxds_type = 'MODS'; //To be overridden in subclasses
-    protected $mxds_namespaceURI = 'http://loc.gov/mods/v3'; //To be overridden in subclasses
+    protected $mxds_type = 'MODS'; 
+    protected $mxds_namespaceURI = 'http://loc.gov/mods/v3'; 
     
     function get_mxds_to_dc(){
         return drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl';
@@ -314,11 +314,11 @@ abstract class batch_edit_mods extends batch_edit_mxds{
  *
  ********************************************************************/
 abstract class batch_edit_mads extends batch_edit_mxds{
-    protected $mxds_type = 'MADS'; //To be overridden in subclasses
-    protected $mxds_namespaceURI = ''; //To be overridden in subclasses
+    protected $mxds_type = 'MADS'; 
+    protected $mxds_namespaceURI = '';
 
     function get_mxds_to_dc(){
-        return 0;
+        return drupal_get_path('module', 'zip_importer') . '/xsl/mads_to_dc.xsl';
     }
     
 }
