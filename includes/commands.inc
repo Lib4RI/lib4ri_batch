@@ -141,7 +141,7 @@ abstract class batch_edit_mxds extends command{
     
     protected function _dry_exec(){
 //        $this->retrieve_islandora_object();
-        if (in_array("ir:citationCModel", $this->object->models)){
+        if (in_array("ir:citationCModel", $this->object->models) or in_array("islandora:personCModel", $this->object->models)){
             $this->retrieve_mxds();
             $this->retrieve_mxds_content();
             $this->mxds_content = $this->edit_mxds(); //To be implemented in subclasses
@@ -167,7 +167,7 @@ abstract class batch_edit_mxds extends command{
             }
         }
         else{
-            $this->message = $this->get_pid().': Not a citation';
+            $this->message = $this->get_pid().': Not a valid object';
             $this->stop = true;
         }       
     }
@@ -401,6 +401,32 @@ class update_cit_dep_name extends batch_edit_mods{
     }    
 }
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class update_aut_dep_name extends batch_edit_mads{
+    
+    protected function edit_mxds(){
+        $this->set_dom();
+        $this->set_xpath();
+        $sections = $this->get_xpath()->query('//mads:mads/mads:affiliation');
+        
+        $edited = false;
+        foreach ($sections as $section){
+            $affiliation = $section->getElementsByTagName('organization')->item(0)->nodeValue;
+            if ($affiliation == $this->options['current']){
+                $section->getElementsByTagName('organization')->item(0)->nodeValue = $this->options['new'];
+                $edited = true;
+            }
+        }
+        if ($edited)
+            return $this->get_dom()->saveXML();
+        else
+            return $this->get_mxds_content();
+    }   
+}
 
 /********************************************************************
  * 
