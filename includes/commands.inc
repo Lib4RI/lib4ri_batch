@@ -362,9 +362,11 @@ class update_cit_dep_name extends batch_edit_mods{
         $sections = $this->get_xpath()->query('//mods:mods/mods:name [@type="personal"]');
           
         $edited = false;
+        $roles = array('author', 'thesis advisor', 'editor');
         $authors = [];
         foreach ($sections as $section){
-            if ($section->getElementsByTagName('roleTerm')->item(0)->nodeValue == 'author'){
+#            if ($section->getElementsByTagName('roleTerm')->item(0)->nodeValue == 'author'){
+            if (in_array($section->getElementsByTagName('roleTerm')->item(0)->nodeValue, $roles)){
                 $affiliation = $section->getElementsByTagName('affiliation')->item(0)->nodeValue;
                 if ($affiliation == $this->options['current']){
                     $section->getElementsByTagName('affiliation')->item(0)->nodeValue = $this->options['new'];
