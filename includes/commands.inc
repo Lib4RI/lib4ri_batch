@@ -393,7 +393,7 @@ class update_cit_dep_name extends batch_edit_mods{
         else
             $wd = null;
         
-        $fid = fopen($wd.$filename, 'w');
+        $fid = fopen($wd.$filename, 'a');
         foreach ($authors as $author){
             fwrite($fid, $author."\n");
         }
