@@ -367,16 +367,19 @@ class update_cit_dep_name extends batch_edit_mods{
         foreach ($sections as $section){
 #            if ($section->getElementsByTagName('roleTerm')->item(0)->nodeValue == 'author'){
             if (in_array($section->getElementsByTagName('roleTerm')->item(0)->nodeValue, $roles)){
-                $affiliation = $section->getElementsByTagName('affiliation')->item(0)->nodeValue;
-                if ($affiliation == $this->options['current']){
-                    $section->getElementsByTagName('affiliation')->item(0)->nodeValue = $this->options['new'];
-                    $elements = $section->getElementsByTagName('nameIdentifier');
-                    foreach ($elements as $element){
-                        if ($element->getAttribute('type')=='authorId'){
-                            array_push($authors, $element->nodeValue);
+                $affiliations = $section->getElementsByTagName('affiliation');
+                foreach ($affiliations as $affiliation){
+                    //->item(0)->nodeValue;
+                    if ($affiliation->nodeValue == $this->options['current']){
+                        $affiliation->nodeValue = $this->options['new'];
+                        $elements = $section->getElementsByTagName('nameIdentifier');
+                        foreach ($elements as $element){
+                            if ($element->getAttribute('type')=='authorId'){
+                                array_push($authors, $element->nodeValue);
+                            }
                         }
+                        $edited = true;
                     }
-                    $edited = true;
                 }
             }
         }
