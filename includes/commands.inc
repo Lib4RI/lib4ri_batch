@@ -370,7 +370,7 @@ class update_cit_dep_name extends batch_edit_mods{
                 $affiliations = $section->getElementsByTagName('affiliation');
                 foreach ($affiliations as $affiliation){
                     //->item(0)->nodeValue;
-                    if ($affiliation->nodeValue == $this->options['current']){
+                    if (preg_replace('/\s+/', ' ', $affiliation->nodeValue) == $this->options['current']){
                         $affiliation->nodeValue = $this->options['new'];
                         $elements = $section->getElementsByTagName('nameIdentifier');
                         foreach ($elements as $element){
@@ -420,7 +420,7 @@ class update_aut_dep_name extends batch_edit_mads{
         
         $edited = false;
         foreach ($sections as $section){
-            $affiliation = $section->getElementsByTagName('organization')->item(0)->nodeValue;
+            $affiliation = preg_replace('/\s+/', ' ',$section->getElementsByTagName('organization')->item(0)->nodeValue);
             if ($affiliation == $this->options['current']){
                 $section->getElementsByTagName('organization')->item(0)->nodeValue = $this->options['new'];
                 $edited = true;
