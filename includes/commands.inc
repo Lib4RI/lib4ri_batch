@@ -449,3 +449,45 @@ class test_edit extends batch_edit_mods{
 }
 
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+
+class testingest extends command{
+    
+    protected function _dry_exec(){
+        //        $this->retrieve_islandora_object();
+        if (!$this->object){
+            $this->message = $this->get_pid().': object not found';
+            $this->stop = true;
+        }
+    }
+    
+    protected function _exec(){
+        $did = 'CIT-DATA';
+        
+        $cit_ds_exists = false;
+        
+//         foreach ($this->object as $datastream) {
+//             if ($datastream->id === $did){
+//                 $cit_ds = $datastream;
+//                 $cit_ds_exists = true;
+//                 break;
+//             }
+//         }
+
+        $cit_ds = $this->object[$did];
+        
+        if ($cit_ds){
+            $cit_ds->content = "<test2>";
+        }
+        else {
+            $cit_ds = $this->object->constructDatastream($did); //maybe $control_group is required
+            $cit_ds->label = 'Citation related information';
+            $cit_ds->content = "<test>";
+            $this->object->ingestDatastream($cit_ds);
+        }
+    }
+}
