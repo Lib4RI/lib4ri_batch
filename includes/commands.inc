@@ -463,7 +463,11 @@ class cit_count_ingest extends command{
             $this->stop = true;
         }
         else{
-            $this->content=$this->get_content();     
+            $this->content=$this->get_content();    
+            if (empty($this->content)){
+                $this->message = $this->get_pid().': XML file not found';
+                $this->stop = true;
+            }
         }
     }
     
