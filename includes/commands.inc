@@ -454,8 +454,7 @@ class test_edit extends batch_edit_mods{
  *
  *
  ********************************************************************/
-
-class testingest extends command{
+class cit_count_ingest extends command{
     
     protected function _dry_exec(){
         //        $this->retrieve_islandora_object();
@@ -463,31 +462,48 @@ class testingest extends command{
             $this->message = $this->get_pid().': object not found';
             $this->stop = true;
         }
+        else{
+            $this->content=$this->get_content();     
+        }
     }
     
     protected function _exec(){
         $did = 'CIT-DATA';
         
-        $cit_ds_exists = false;
-        
-//         foreach ($this->object as $datastream) {
-//             if ($datastream->id === $did){
-//                 $cit_ds = $datastream;
-//                 $cit_ds_exists = true;
-//                 break;
-//             }
-//         }
-
         $cit_ds = $this->object[$did];
         
         if ($cit_ds){
-            $cit_ds->content = "<test2>";
+            $cit_ds->content = $this->content;
         }
         else {
             $cit_ds = $this->object->constructDatastream($did); //maybe $control_group is required
             $cit_ds->label = 'Citation related information';
-            $cit_ds->content = "<test>";
+            $cit_ds->content = $this->content;
             $this->object->ingestDatastream($cit_ds);
+        }
+    }
+    
+    private function get_content(){
+        $filename = $this->options['dirname']."/".str_replace(':', '_', $this->pid).'.xml';
+        $content = file_get_contents($filename);
+        var_dump($filname);
+        var_dump($content);
+        return $content;
+    }
+    
+    private function ingest_citcount($pid, $xml_data){
+        $did = 'CIT-DATA';
+        $object = islandora_object_load($pid);
+        $cit_ds = $object[$did]; //Data stream selection
+        
+        if ($cit_ds){
+            $cit_ds->content = $xml_data;
+        }
+        else {
+            $cit_ds = $object->constructDatastream($did); //maybe $control_group is required
+            $cit_ds->label = 'Citation related information';
+            $cit_ds->content = $xml_data;
+            $object->ingestDatastream($cit_ds);
         }
     }
 }
