@@ -486,8 +486,6 @@ class cit_count_ingest extends command{
     private function get_content(){
         $filename = $this->options['dirname']."/".str_replace(':', '_', $this->pid).'.xml';
         $content = file_get_contents($filename);
-        var_dump($filname);
-        var_dump($content);
         return $content;
     }
     
