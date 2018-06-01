@@ -51,7 +51,8 @@ class dirlist extends get_pids{
         }
         foreach ($to_unset as $key => $file)
             unset ($files[$key]);
-        return 0;
+        
+        return $files;
     }
 }
 
