@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USER=doradev
+USER=<islandora_user>
 XMLDIR='<full_path_of_cit_count_xml_file_to_ingest>'
 
 PIDSELECT=dirlist
