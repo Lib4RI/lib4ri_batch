@@ -563,7 +563,7 @@ class cit_count_detect extends command{
     protected function _exec(){
         $file_path = $this->options['wd'].'/'.$this->options['outfile'];
         $fid = fopen($file_path, 'a');        
-        fwrite($fid, $this->ids_string);
+        fwrite($fid, $this->ids_string."\n");
         fclose($fid);
     }
     
