@@ -509,3 +509,62 @@ class cit_count_ingest extends command{
         }
     }
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class cit_count_detect extends command{
+    
+    private function get_mods_content(){
+        $this->mods_content =  $this->object['MODS']->content;
+    }
+    
+    private function get_id_labels(){
+        return explode(';',$this->options['idlabels']);  
+    }
+    
+    private function get_identifier($id_label){
+        try{
+            return $this->xpath->query("//mods:mods/mods:identifier [@type='$id_label']")->item(0)->nodeValue;
+        }
+        catch (Exception $e){
+            return 0;
+        }
+    }
+    
+    protected function _dry_exec(){
+        $this->dom = new DOMDocument();
+        $this->get_mods_content();
+        $this->dom->loadXML($this->mods_content);
+        $this->xpath = new DOMXPath($this->dom);
+        
+        $this->ids_string = $this->get_pid().$this->options['idsep'];
+        $this->identifiers = [];
+        $id_labels = $this->get_id_labels();
+        $this->stop = true;
+        if ($this->mods_content){
+            foreach ($id_labels as $id_label){
+                $this->identifiers[$id_label] = $this->get_identifier($id_label);
+                $this->ids_string .= $this->get_identifier($id_label).$this->options['idsep'];
+                if (!empty($this->identifiers[$id_label]))
+                    $this->stop = false;
+            }
+        }
+        if ($this->stop == true){
+            $this->message .= $this->get_pid().' NO IDs found';
+        }
+        else{
+            $this->message .= $this->ids_string;
+        }
+    }
+
+    protected function _exec(){
+        $file_path = $this->options['wd'].'/'.$this->options['outfile'];
+        $fid = fopen($file_path, 'a');        
+        fwrite($fid, $this->ids_string);
+        fclose($fid);
+    }
+    
+}
