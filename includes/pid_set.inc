@@ -34,9 +34,10 @@ class single extends get_pids{
 class textfile extends get_pids{
         
     protected function get_pid_set(){
-        return file($this->options['filename']);
+        return array_reverse(array_unique(file($this->options['filename'])));
     }    
 }
+
 
 class pubtype extends get_pids{
     
@@ -70,6 +71,26 @@ class pubtype extends get_pids{
         $results = $qp->islandoraSolrResult['response']['objects'];
         var_dump($qp);
         var_dump($results);
+    }
+}
+
+
+
+class dirlist extends get_pids{
+    
+    protected function get_pid_set(){
+        $files = scandir ($this->options['dirname']);
+        $to_unset = [];
+        foreach ($files as $ii => $file){
+            if (($file == '.') || ($file == '..'))
+                array_push($to_unset, $ii);
+            $file = str_replace('.xml', '', $file);
+            $files[$ii] = str_replace('_', ':', $file);
+        }
+        foreach ($to_unset as $key => $file)
+            unset ($files[$key]);
+        
+        return $files;
     }
 }
 
