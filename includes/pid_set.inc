@@ -39,22 +39,27 @@ class textfile extends get_pids{
 }
 
 
-class pubtype extends get_pids{
+class solr_search extends get_pids{
+    
+    protected function get_params(){
+        $this->query = $this->options['query'];
+        $this->fq = $this->options['fq'];
+        $this->facet = $this->options['facet'];
+        $this->facetLimit = $this->options['facetLimit'];
+        $this->solrLimit = $this->options['solrLimit']; 
+    }
     
     protected function get_pid_set(){
-        $namespace = 'eawag';
-        $content_model = 'ir:citationCModel';
-        $collection_pid = 'eawag:publications';
-        $genre = $this->options['type'];
-        
+        $this->get_params();
         $qp = new IslandoraSolrQueryProcessor();
-        $qp->buildQuery('PID:' . $namespace . '\:*');
+//        $qp->buildQuery('PID:' . $namespace . '\:*');
+        $qp->buildQuery($this->query);
         $qp->solrParams['fl'] = 'PID';
-        $qp->solrParams['fq'] = array(
-            'RELS_EXT_hasModel_uri_ms:"info:fedora/' . $content_model . '"',
-            'RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/' . $collection_pid . '"',
-            'mods_genre_ms:"' . $genre . '"',
-        );
+//         $qp->solrParams['fq'] = array(
+//             'RELS_EXT_hasModel_uri_ms:"info:fedora/' . $content_model . '"',
+//             'RELS_EXT_isMemberOfCollection_uri_ms:"info:fedora/' . $collection_pid . '"',
+//             'mods_genre_ms:"' . $genre . '"',
+//         );
         
             
         // Lib4ri appends a number to the id of PDF datastreams beyond the first.
@@ -65,16 +70,43 @@ class pubtype extends get_pids{
 //             '!prefix' => variable_get('lib4ridora_extra_pdf_datastream_prefix', 'PDF'),
 //         ));
     
-        $qp->solrParams['facet'] = 'false';
-        $qp->solrLimit = 100000000;
+        $qp->solrParams['facet'] = $this->facet;
+//         $qp->solrParams['facet.mincount'] = 1;
+//         $qp->solrParams['facet.field'] = $facet_fields;
+        $qp->solrParams['facet.limit'] = $this->facetLimit;
+        
+        $qp->solrLimit = $this->solrLimit;
         $qp->executeQuery(TRUE, FALSE);
         $results = $qp->islandoraSolrResult['response']['objects'];
-        var_dump($qp);
-        var_dump($results);
+//         var_dump($qp);
+//         var_dump($results);
+        $pids = [];
+        foreach ($results as $result){
+            array_push($pids, $result['PID']);
+        }
+        return $pids;
     }
 }
 
+class solr_query extends solr_search{
+    protected function get_params(){
+        $this->query = $this->options['query'];
+        $this->fq = null;
+        $this->facet = 'false';
+        $this->facetLimit = null;
+        $this->solrLimit = 100000000;
+    }
+}
 
+class title extends solr_search{
+    protected function get_params(){
+        $this->query = 'dc.title:('.$this->options['title'].')';
+        $this->fq = null;
+        $this->facet = 'false';
+        $this->facetLimit = null;
+        $this->solrLimit = 100000000;
+    }
+}
 
 class dirlist extends get_pids{
     
