@@ -459,14 +459,17 @@ class cit_count_ingest extends command{
     protected function _dry_exec(){
         //        $this->retrieve_islandora_object();
         if (!$this->object){
-            $this->message = $this->get_pid().': object not found';
+            $this->message .= $this->get_pid().': object not found';
             $this->stop = true;
         }
         else{
             $this->content=$this->get_content();    
             if (empty($this->content)){
-                $this->message = $this->get_pid().': XML file not found';
+                $this->message .= $this->get_pid().': XML file NOT found';
                 $this->stop = true;
+            }
+            else {
+                $this->message .= $this->get_pid().': XML file found';
             }
         }
     }
@@ -485,6 +488,7 @@ class cit_count_ingest extends command{
             $cit_ds->content = $this->content;
             $this->object->ingestDatastream($cit_ds);
         }
+        $this->message .= ': ingested';
     }
     
     private function get_content(){
