@@ -353,16 +353,22 @@ class update_publisher extends batch_edit_mods{
  *
  *
  ********************************************************************/
-class first_author extends batch_edit_mods{
+class first_name extends batch_edit_mods{
     protected $update_dc = false;
     
     protected function edit_mxds(){
+        
+        $roles = explode(';',$this->options['roles']);
+        
         $this->set_dom();
         $this->set_xpath();
-        $section = $this->get_xpath()->query('//mods:mods/mods:name [@type="personal"]')[0];
-        if($section && (empty($section->getAttribute('usage')))){
-            $section->setAttribute('usage', 'primary');
-            $edited = true;
+        $edited = false;
+        foreach ($roles as $role){
+            $section = $this->get_xpath()->query("//mods:mods/mods:name [@type=\"personal\"  and mods:role/mods:roleTerm=\"$role\"]")[0];
+            if($section && (empty($section->getAttribute('usage')))){
+                $section->setAttribute('usage', 'primary');
+                $edited = true;
+            }
         }
 
         if ($edited)
