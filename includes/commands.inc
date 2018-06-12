@@ -353,6 +353,30 @@ class update_publisher extends batch_edit_mods{
  *
  *
  ********************************************************************/
+class first_author extends batch_edit_mods{
+    protected $update_dc = false;
+    
+    protected function edit_mxds(){
+        $this->set_dom();
+        $this->set_xpath();
+        $section = $this->get_xpath()->query('//mods:mods/mods:name [@type="personal"]')[0];
+        if($section && (empty($section->getAttribute('usage')))){
+            $section->setAttribute('usage', 'primary');
+            $edited = true;
+        }
+
+        if ($edited)
+            return $this->get_dom()->saveXML();
+        else
+            return $this->get_mxds_content();
+    }
+}
+    
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
 class update_cit_dep_name extends batch_edit_mods{
     protected $update_dc = false;
     
