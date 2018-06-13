@@ -11,7 +11,7 @@ PIDOPTIONS="dirname=$XMLDIR"
 #PIDOPTIONS="pid=<islandora_objct_pid>"
 
 COMMAND=cit_count_ingest
-COMMANDOPTIONS="dirname=$XMLDIR"
+COMMANDOPTIONS="dirname=$XMLDIR|max_size=3"
 
 DRYRUN=true
 if [[ $1 = "dryfalse" ]]

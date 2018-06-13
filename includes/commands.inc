@@ -485,9 +485,19 @@ class test_edit extends batch_edit_mods{
  *
  ********************************************************************/
 class cit_count_ingest extends command{
+    private $did = 'CIT-DATA';
+    private $max_size;
+    
+    private function set_max_size(){
+        if ($this->options['max_size'])
+            $this->max_size = $this->options['max_size'];
+        else
+            $this->max_size = 3;
+    }
     
     protected function _dry_exec(){
         //        $this->retrieve_islandora_object();
+        $this->set_max_size();
         if (!$this->object){
             $this->message .= $this->get_pid().': object not found';
             $this->stop = true;
@@ -499,26 +509,46 @@ class cit_count_ingest extends command{
                 $this->stop = true;
             }
             else {
-                $this->message .= $this->get_pid().': XML file found';
+                $this->message .= $this->get_pid().': XML file found; ';
+                if ($this->object[$this->did])
+                    $this->message .= sizeof($this->object[$this->did]).' datastream version(s) ';
             }
         }
     }
     
     protected function _exec(){
-        $did = 'CIT-DATA';
         
-        $cit_ds = $this->object[$did];
         
+        $cit_ds = $this->object[$this->did];        
         if ($cit_ds){
             $cit_ds->content = $this->content;
         }
         else {
-            $cit_ds = $this->object->constructDatastream($did); //maybe $control_group is required
+            $cit_ds = $this->object->constructDatastream($this->did); //maybe $control_group is required
             $cit_ds->label = 'Citation related information';
             $cit_ds->content = $this->content;
             $this->object->ingestDatastream($cit_ds);
         }
-        $this->message .= ': ingested';
+        $this->message .= '- ingested';
+        
+        //Old ds deletion
+        if (sizeof($cit_ds) > $this->max_size){
+            $count = 0;
+            $th = sizeof($cit_ds);
+            for ($ii = $this->max_size; $ii < $th; $ii++){
+                try {
+                    unset($cit_ds[$this->max_size]);
+                    $count++;
+                }
+                catch (Exception $e) {
+                    $del_err = true;
+                }
+            }
+            if ($del_error)
+                $this->message .= ' - datastream deletion error(s)';
+            $this->message .= ' - '.$count.' version(s) deleted, '.sizeof($cit_ds).' remaining'; 
+        }
+
     }
     
     private function get_content(){
