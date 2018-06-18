@@ -489,7 +489,7 @@ class cit_count_ingest extends command{
     private $max_size;
     
     private function set_max_size(){
-        if ($this->options['max_size'])
+        if (isset($this->options['max_size']))
             $this->max_size = $this->options['max_size'];
         else
             $this->max_size = 3;
@@ -512,11 +512,17 @@ class cit_count_ingest extends command{
                 $this->message .= $this->get_pid().': XML file found; ';
                 if ($this->object[$this->did])
                     $this->message .= sizeof($this->object[$this->did]).' datastream version(s) ';
-            }
+            }       
         }
     }
     
     protected function _exec(){
+        //Datastream purging
+        if ($this->max_size == 0){
+            $this->object->purgeDatastream($this->did);
+            $this->message .= '- Datestream purged';
+            return;
+        }
         
         
         $cit_ds = $this->object[$this->did];        
