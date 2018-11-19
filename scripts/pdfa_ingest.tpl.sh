@@ -22,6 +22,6 @@ else
     echo drush -u $USER -r /var/www/html  dora-batch --pids=$PIDSELECT --pids_options=\"$PIDOPTIONS\" --command=$COMMAND --command_options=\"$COMMANDOPTIONS\" --dry=$DRYRUN
 fi
 
-# example:
+# example :
 # drush -u 1 -r /var/www/html dora-batch --pids=single --pids_options='pid=eawag:679' --command=pdfa_ingest --command_options='pdfa=/tmp/eawag-679.PDF.1542369045.PDF-A.pdf|dsId=PDF_PDF-A|dsLabel=eawag-679.PDF.1542369045.PDF-A.pdf' --dry=false
 

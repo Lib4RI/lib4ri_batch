@@ -584,7 +584,7 @@ class cit_count_ingest extends command{
  *
  * class functions to add a PDF(A) datastream
  * based on class cit_count_ingest
- * Example:
+ * Example :
  * drush -u 1 -r /var/www/html dora-batch --pids=single --pids_options='pid=eawag:679' --command=pdfa_ingest --command_options='pdfa=/tmp/eawag-679.PDF.1542369045.PDF-A.pdf|dsId=PDF_PDF-A|dsLabel=eawag-679.PDF.1542369045.PDF-A.pdf' --dry=false
  * 
  ********************************************************************/
