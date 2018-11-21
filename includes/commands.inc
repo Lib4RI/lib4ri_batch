@@ -594,6 +594,7 @@ class pdfa_ingest extends command{
 	private $pdfa = "";		/* = $file_uri */
 	private $dsId = "";		/* = $datastream_id */
 	private $dsLabel = "";		/* = $datastream_label */
+	private $dsMime = "";
 	private $dsRedo = FALSE;	/* = $force_fresh */
 
 	private function get_content($file_path) {
@@ -610,31 +611,30 @@ class pdfa_ingest extends command{
 		$this->pdfa = $this->options['pdfa'];		/* = $file_uri */
 		$this->dsId = $this->options['dsId'];		/* = $datastream_id */
 		$this->dsLabel = $this->options['dsLabel'];		/* = $datastream_label */
-		if( @isset($this->options['dsRedo']) ) {
-			$this->dsLabel = $this->options['dsRedo'];		/* = $force_fresh */
-		}
+		$this->dsMime = @empty($this->options['dsMime']) ? "application/pdf" : $this->options['dsMime'];		// there should be a auto-detection though...
+		$this->dsRedo = @!isset($this->options['dsRedo']) ? FALSE : $this->options['dsRedo'];		/* = $force_fresh */
 	}
-
+				
 	protected function _dry_exec(){
 		$this->get_options_pdfa();
 		if ( !$this->object || empty($this->pidNow) || empty($this->pdfa) || empty($this->dsId) || empty($this->dsLabel) ) {
-			$this->message .= 'Error: Insufficient PDF/A or datastream parameters for ' . $pidNow . '. ';
+			$this->message .= 'Error: Insufficient ' . strtoupper(substr(strrchr("/".($this->dsMime),"/"),1)) . ' or datastream parameters for ' . $pidNow . '. ';
 			$this->stop = true;
 			return;
 		}
 		$this->content = $this->get_content($this->pdfa);	
 		if (empty($this->content)){
-			$this->message .= 'Error: '. $this->pidNow . ' got a broken PDF/A. ';
+			$this->message .= 'Error: '. $this->pidNow . ' got a broken ' . strtoupper(substr(strrchr("/".($this->dsMime),"/"),1)) . '. ';
 			$this->stop = true;
 			return;
 		}
-		$this->message .= 'Success: PDF/A accepted for '. $this->pidNow . '. ';
+		$this->message .= 'Success: ' . strtoupper(substr(strrchr("/".($this->dsMime),"/"),1)) . ' accepted for '. $this->pidNow . '. ';
 	}
 
 	protected function _exec(){
 		$this->get_options_pdfa();
 		if ( !$this->object || empty($this->pidNow) || empty($this->pdfa) || empty($this->dsId) || empty($this->dsLabel) ) {
-			$this->message .= 'Error: Insufficient PDF/A or datastream settings for ' . $pidNow . '. ';
+			$this->message .= 'Error: Insufficient ' . strtoupper(substr(strrchr("/".($this->dsMime),"/"),1)) . ' or datastream settings for ' . $pidNow . '. ';
 			$this->stop = true;
 			return;
 		}
@@ -644,30 +644,31 @@ class pdfa_ingest extends command{
 				return;
 			}
 			$this->object->purgeDatastream($this->dsId);
-			$this->message .= 'Notice: PDF/A datestream purged to recreate it. ';
+			$this->message .= 'Notice: ' . strtoupper(substr(strrchr("/".($this->dsMime),"/"),1)) . ' datestream purged to recreate it. ';
 		}
 		else {
 			$dsItem = $this->object->constructDatastream($this->dsId);		// M is the (default) control_group
-			$this->message .= 'Notice: New PDF/A datestream just created now. ';
+			$this->message .= 'Notice: New ' . strtoupper(substr(strrchr("/".($this->dsMime),"/"),1)) . ' datestream just created now. ';
 		}
 		$dsItem->label = $this->dsLabel;
+		if ( @!empty($this->dsMime) ) { $dsItem->mimetype = $this->dsMime; }
 		$dsItem->content = $this->get_content($this->pdfa);
 		$this->object->ingestDatastream($dsItem);
 	}
 	
 	private function ingest_pdfa(){
 		$pidNow = empty($this->get_pid()) ? $this->options['pid'] : $this->get_pid();
-		$pdfa = $this->options['pdfa'];		/* = $file_uri */
-		$dsId = $this->options['dsId'];		/* = $datastream_id */
-		$dsLabel = $this->options['dsLabel'];		/* = $datastream_label */
-		if( @isset($this->options['dsRedo']) ) {
-			$dsRedo = $this->options['dsRedo'];		/* = $force_fresh */
-		}
+		if ( $object = islandora_object_load($pidNow) ) {
 
-		$object = islandora_object_load($pidNow);
-		if ($object) {
+			$pdfa = $this->options['pdfa'];		/* = $file_uri */
+			$dsId = $this->options['dsId'];		/* = $datastream_id */
+			$dsLabel = $this->options['dsLabel'];		/* = $datastream_label */
+			$dsMime = @!isset($this->options['dsMime']) ? "" : $this->options['dsMime'];
+		//	$dsRedo = @!isset($this->options['dsRedo']) ? FALSE : $this->options['dsRedo'];		/* = $force_fresh */
+
 			$dsItem = $object->constructDatastream($dsId);		// M is the (default) control_group
 			$dsItem->label = $dsLabel;
+			if ( $dsMime != "" ) { $dsItem->mimetype = $dsMime; }
 			$dsItem->content = get_content($pdfa);
 			$object->ingestDatastream($dsItem);
 		}
