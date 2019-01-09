@@ -582,6 +582,29 @@ class cit_count_ingest extends command{
 
 /********************************************************************
  *
+ *
+ *
+ ********************************************************************/
+class fetch_pub_ids extends batch_edit_mods{
+    protected $update_dc = true;
+    
+    protected function edit_mxds(){
+        module_load_include('inc', 'lib4ri_pub_ids', 'includes/utils');
+        $this->set_dom();
+        $this->set_xpath();
+        $modified = add_ids_to_mods($this->get_dom(), $this->get_xpath());
+        
+        if ($modified){
+            return $this->get_dom()->saveXML();
+        }
+        return $this->get_mxds_content();
+     }
+    
+}
+
+
+/********************************************************************
+ *
  * class functions to add a PDF(A) datastream
  * based on class cit_count_ingest
  * Example :
