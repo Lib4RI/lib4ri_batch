@@ -107,13 +107,12 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
         
         if ($log){
             $sandbox['log'] = new filelog($log_options);
-            $sandbox['log']->log_plain('');
-            $sandbox['log']->log('Execution started');
             $sandbox['log']->log_plain('PIDs retieval method: '.$pids);
             $sandbox['log']->log_plain('PIDs retieval options: '.json_encode($pids_options));
             $sandbox['log']->log_plain('Command: '.$command);
             $sandbox['log']->log_plain('Command options: '.json_encode($command_options));
             $sandbox['log']->log_plain('Dry run: '.$dry);
+            $sandbox['log']->log('Starting execution');
         }
     }
     
