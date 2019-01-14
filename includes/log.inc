@@ -7,14 +7,31 @@ class filelog{
     
     public function __construct($options) {
         $this->options = $options;
-        
         $furi = $this->options['fdir'].$this->options['fname'];
-        $this->open_log($furi);
+        while (file_exists($furi))
+            $furi .= '0';
+            
+        if ($this->options['mode'] == 'new')
+            $this->new_log($furi);
+        else 
+            $this->append_log($furi);
     }
         
-    protected function open_log($furi){
+    public function get_furi(){
+        return $this->furi;
+    }
+    
+    public function new_log($furi){
+        $this->open_log($furi, 'x');
+    }
+
+    public function append_log($furi){
+        $this->open_log($furi, 'a');
+    }
+    
+    protected function open_log($furi, $mode){
         $this->furi = $furi;
-        $this->fid = fopen($this->furi, 'w+');
+        $this->fid = fopen($this->furi, $mode);
         return $this->fid;
     }
 
