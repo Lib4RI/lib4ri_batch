@@ -38,10 +38,10 @@ function drush_lib4ri_batch_dora_batch($pids = null, $pids_options = null, $comm
     $command = drush_get_option('command');
 
     $log_o = drush_get_option('log');
-    if ($log_o == 'false') //Default to true
-        $log = false;
+    if ($log_o == 'true') //Default to true
+        $log = true;
         else
-            $log = true;
+       $log = false;
             
     $dry_o = drush_get_option('dry');
     if ($dry_o == 'false') //Default to true
