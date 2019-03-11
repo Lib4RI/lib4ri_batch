@@ -328,6 +328,36 @@ abstract class batch_edit_mads extends batch_edit_mxds{
  *
  *
  ********************************************************************/
+class edit_mads_xslt extends batch_edit_mads{
+
+    protected function edit_mxds(){
+        $this->update_dc = $this->options['update_dc'];
+        $this->set_dom();
+        return apply_xslt_to_mxds($this->get_dom(), $this->options['xslt']);
+    }
+    
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class edit_mods_xslt extends batch_edit_mods{
+
+    protected function edit_mxds(){
+        $this->update_dc = $this->options['update_dc'];
+        $this->set_dom();
+        return apply_xslt_to_mxds($this->get_dom(), $this->options['xslt']);
+    }
+    
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
 class update_publisher extends batch_edit_mods{
     protected $update_dc = true;
     
@@ -756,4 +786,15 @@ class cit_count_detect extends command{
         fclose($fid);
     }
     
+}
+
+function apply_xslt_to_mxds($mxds, $path_to_xslt){
+    
+    $xslt_processor = new XSLTProcessor();
+    $xslt_doc = new DOMDocument();
+    $xslt_doc->load($path_to_xslt);
+    $xslt_processor->importStylesheet($xslt_doc);
+    $a = $xslt_processor->transformToDoc($mxds)->saveXML();
+    var_dump($a);
+    return $a;
 }
