@@ -64,6 +64,34 @@ EOQ;
  *
  ********************************************************************/
 
+class edit_state extends command{
+    protected function _dry_exec(){
+        //        $this->retrieve_islandora_object();
+        if (!$this->object){
+            $this->message = $this->get_pid().': object not found';
+            $this->stop = true;
+        }
+        elseif ($this->has_children()){
+            $this->message = $this->get_pid().': Has children. Cannot edit';
+            $this->stop = true;
+        }
+        else{
+            $this->message = $this->get_pid().': Editing...';
+        }
+    }
+    
+    protected function _exec(){
+        $this->object->state=$this->options['state'];
+        $this->message.=' State edited';
+    }    
+    
+}
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+
 class purge extends command{
 
     protected function _dry_exec(){
@@ -797,4 +825,18 @@ function apply_xslt_to_mxds($mxds, $path_to_xslt){
     $a = $xslt_processor->transformToDoc($mxds)->saveXML();
     var_dump($a);
     return $a;
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class get_mods extends batch_edit_mods{
+    protected $update_dc = false;
+    
+    protected function edit_mxds(){
+                
+        return $this->get_mxds_content()."\n<downloaded />";
+    }
 }
