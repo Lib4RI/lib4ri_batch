@@ -435,7 +435,51 @@ class first_name extends batch_edit_mods{
             return $this->get_mxds_content();
     }
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class append_add_info extends batch_edit_mods{
+    protected $update_dc = false;
     
+    protected function edit_mxds(){
+        $edited = false;
+        
+        $str = $this->options['string'];
+        $this->set_dom();
+        $this->set_xpath();
+        $edited = false;
+        
+        $add_info_elem = $this->get_xpath()->query("//mods:mods/mods:note [@type=\"additional information\"]")->item(0);
+        if ($add_info_elem === NULL){
+            $add_info_elem = $this->get_dom()->createElement('note');
+            $attribute = $this->get_dom()->createAttribute('type');
+            $attribute->value = 'additional information';
+            $add_info_elem->appendChild($attribute);
+            $this->get_dom()->firstChild->appendChild($add_info_elem);
+        }
+                
+        $add_info = $add_info_elem->nodeValue;
+        
+        if ($add_info != ""){
+            $add_info .= ' ';
+        }
+        
+        if (strpos($add_info, '#green') === FALSE) { //needs === to distinguish from 0
+            $add_info .= '#green';
+            $add_info_elem->nodeValue = $add_info;
+            $edited = true;
+        }
+
+        if ($edited)
+            return $this->get_dom()->saveXML();
+            else
+                return $this->get_mxds_content();
+    }
+}
+
 /********************************************************************
  *
  *
