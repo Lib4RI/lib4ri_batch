@@ -884,3 +884,113 @@ class get_mods extends batch_edit_mods{
         return $this->get_mxds_content()."\n<downloaded />";
     }
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class set_pdf_public extends command{
+    private $rext;
+    private $rint;
+    private $ext_edited = FALSE;
+    private $int_edited = FALSE;
+    private $edited_int_content;
+    private $edited_ext_content;
+    
+    
+    protected function _dry_exec(){
+        foreach ($this->object as $datastream) {
+            if ($datastream->id === 'RELS-INT'){
+                $this->rint = $datastream;
+            }
+        }
+        foreach ($this->object as $datastream) {
+            if ($datastream->id === 'RELS-EXT'){
+                $this->rext = $datastream;
+            }
+        }
+       
+        $this->dom_int = new DOMDocument();
+        $this->dom_int->loadXML($this->rint->content);
+        
+        $this->dom_ext = new DOMDocument();
+        $this->dom_ext->loadXML($this->rext->content);
+
+        $this->edited_int_content = $this->edit_rels_int();
+        $this->edited_ext_content = $this->edit_rels_ext();
+        
+        if (/*$this->ext_edited &&*/ $this->int_edited){
+            if ($this->options['log_ds'] == true){
+                $this->log_ds($this->rint->content,'RELS-INT_old');
+                $this->log_ds($this->rext->content,'RELS-EXT_old');
+                $this->log_ds($edited_int,'RELS-INT_new');
+                $this->log_ds($edited_ext,'RELS-EXT_new');
+            }
+            $this->message = $this->get_pid().": Edited";
+        }
+        else{
+            $this->message = $this->get_pid().": Not edited";
+        }
+        
+    }
+
+    protected function _exec(){
+        if (/*($this->ext_edited == true) && */($this->int_edited == true)){
+            $this->rint->content = $this->edited_int_content;
+            $this->rext->content = $this->edited_ext_content;
+            $this->message.=" - Ingested";
+        }
+        else{
+            $this->message.=" - Not ingested";
+        }
+    
+    }
+
+    private function edit_rels_int(){
+        $xpath = new DOMXPath($this->dom_int);
+        $items = $xpath->query("//rdf:RDF/rdf:Description");
+        foreach ($items as $item){
+            $attr_value = $item->getAttribute('rdf:about');
+            if ((strpos($attr_value, 'PDF')) && (strpos($attr_value, 'PDF-A')===FALSE)){
+                if ($item->getElementsByTagName('lib4ridora-multi-embargo-document_version')->item(0)->nodeValue == 'published version'){                    
+                    $item->getElementsByTagName('lib4ridora-multi-embargo-availability')->item(0)->nodeValue = 'public';
+                    $item->removeChild($item->getElementsByTagName('lib4ridora-multi-embargo-embargo_date')->item(0));
+                    
+                    $this->int_edited = TRUE;
+                }
+            }
+        }
+        
+        $ret = '';
+        foreach ($this->dom_int->childNodes as $node) {
+            $ret .= $this->dom_int->saveXML($node, LIBXML_NOEMPTYTAG);
+        }
+        return $ret;
+    }
+    
+    private function edit_rels_ext(){
+        $xpath = new DOMXPath($this->dom_ext);
+        $item = $xpath->query("//rdf:RDF/rdf:Description/islandora:fullText")->item(0);
+        $item->nodeValue = 'Open Access';
+        
+        $ret = '';
+        foreach ($this->dom_ext->childNodes as $node) {
+            $ret .= $this->dom_ext->saveXML($node, LIBXML_NOEMPTYTAG);
+        }
+        return $ret;
+        
+    }
+    
+ 
+    private function log_ds($ds_content, $ds_name){
+        $filename = date('Y-m-d_H-i-s').'_'.$this->pid.'_'.$ds_name;
+        if ($this->options['wd'])
+            $wd = $this->options['wd'].'/';
+            else
+                $wd = null;
+                $fid = fopen($wd.$filename, 'w');
+                fwrite($fid, $ds_content);
+                fclose($fid);
+    }
+}
