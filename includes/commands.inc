@@ -955,7 +955,10 @@ class set_pdf_public extends command{
             if ((strpos($attr_value, 'PDF')) && (strpos($attr_value, 'PDF-A')===FALSE)){
                 if ($item->getElementsByTagName('lib4ridora-multi-embargo-document_version')->item(0)->nodeValue == 'published version'){                    
                     $item->getElementsByTagName('lib4ridora-multi-embargo-availability')->item(0)->nodeValue = 'public';
-                    $item->removeChild($item->getElementsByTagName('lib4ridora-multi-embargo-embargo_date')->item(0));
+                    $embargo_date = $item->getElementsByTagName('lib4ridora-multi-embargo-embargo_date')->item(0);
+                    if ($embargo_date){
+                        $item->removeChild($embargo_date);
+                    }
                     
                     $this->int_edited = TRUE;
                 }
@@ -966,7 +969,7 @@ class set_pdf_public extends command{
         foreach ($this->dom_int->childNodes as $node) {
             $ret .= $this->dom_int->saveXML($node, LIBXML_NOEMPTYTAG);
         }
-        return $ret;
+        return $ret."\n";
     }
     
     private function edit_rels_ext(){
@@ -978,7 +981,7 @@ class set_pdf_public extends command{
         foreach ($this->dom_ext->childNodes as $node) {
             $ret .= $this->dom_ext->saveXML($node, LIBXML_NOEMPTYTAG);
         }
-        return $ret;
+        return $ret."\n";
         
     }
     
