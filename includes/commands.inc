@@ -924,8 +924,8 @@ class set_pdf_public extends command{
             if ($this->options['log_ds'] == true){
                 $this->log_ds($this->rint->content,'RELS-INT_old');
                 $this->log_ds($this->rext->content,'RELS-EXT_old');
-                $this->log_ds($edited_int,'RELS-INT_new');
-                $this->log_ds($edited_ext,'RELS-EXT_new');
+                $this->log_ds($this->edited_int_content,'RELS-INT_new');
+                $this->log_ds($this->edited_ext_content,'RELS-EXT_new');
             }
             $this->message = $this->get_pid().": Edited";
         }
