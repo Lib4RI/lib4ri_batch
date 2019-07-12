@@ -997,3 +997,77 @@ class set_pdf_public extends command{
                 fclose($fid);
     }
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class edit_rels_ext extends command{
+    protected function _dry_exec(){
+        foreach ($this->object as $datastream) {
+            if ($datastream->id === 'RELS-EXT'){
+                $this->rext = $datastream;
+            }
+        }
+                
+        $this->dom_ext = new DOMDocument();
+        $this->dom_ext->loadXML($this->rext->content);
+        
+        $this->edited_ext_content = $this->edit_rels_ext();
+        
+        if ($this->ext_edited /*&& $this->int_edited*/){
+            if ($this->options['log_ds'] == true){
+                $this->log_ds($this->rext->content,'RELS-EXT_old');
+                $this->log_ds($this->edited_ext_content,'RELS-EXT_new');
+            }
+            $this->message = $this->get_pid().": Edited";
+        }
+        else{
+            $this->message = $this->get_pid().": Not edited";
+        }
+        
+    }
+    
+    protected function _exec(){
+        if ($this->ext_edited /*&& $this->int_edited*/){
+            $this->rext->content = $this->edited_ext_content;
+            $this->message.=" - Ingested";
+        }
+        else{
+            $this->message.=" - Not ingested";
+        }
+        
+    }
+    
+    private function edit_rels_ext(){
+        $xpath = new DOMXPath($this->dom_ext);
+        $item = $xpath->query("//rdf:RDF/rdf:Description/islandora:inheritXacmlFrom")->item(0);
+        $item->nodeValue = 'info:fedora/psi:publications';
+        
+        $ret = '';
+        foreach ($this->dom_ext->childNodes as $node) {
+            $ret .= $this->dom_ext->saveXML($node, LIBXML_NOEMPTYTAG);
+        }
+        return $ret."\n";
+        
+    }
+    
+    
+    private function log_ds($ds_content, $ds_name){
+        $filename = date('Y-m-d_H-i-s').'_'.$this->pid.'_'.$ds_name;
+        if ($this->options['wd'])
+            $wd = $this->options['wd'].'/';
+            else
+                $wd = null;
+                $fid = fopen($wd.$filename, 'w');
+                fwrite($fid, $ds_content);
+                fclose($fid);
+    }
+    
+}
+
+
+
+
+
