@@ -1004,6 +1004,10 @@ class set_pdf_public extends command{
  *
  ********************************************************************/
 class edit_rels_ext extends command{
+    private $rext;
+    private $ext_edited = FALSE;
+    private $edited_ext_content;
+    
     protected function _dry_exec(){
         foreach ($this->object as $datastream) {
             if ($datastream->id === 'RELS-EXT'){
@@ -1044,7 +1048,7 @@ class edit_rels_ext extends command{
         $xpath = new DOMXPath($this->dom_ext);
         $item = $xpath->query("//rdf:RDF/rdf:Description/islandora:inheritXacmlFrom")->item(0);
         $item->nodeValue = 'info:fedora/psi:publications';
-        
+        $this->int_edited = TRUE;
         $ret = '';
         foreach ($this->dom_ext->childNodes as $node) {
             $ret .= $this->dom_ext->saveXML($node, LIBXML_NOEMPTYTAG);
