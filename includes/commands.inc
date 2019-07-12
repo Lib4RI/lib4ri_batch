@@ -1071,7 +1071,34 @@ class edit_r_ext extends command{
     
 }
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
 
+class edit_owner extends command{
+    protected function _dry_exec(){
+        //        $this->retrieve_islandora_object();
+        if (!$this->object){
+            $this->message = $this->get_pid().': object not found';
+            $this->stop = true;
+        }
+        elseif ($this->has_children()){
+            $this->message = $this->get_pid().': Has children. Cannot edit';
+            $this->stop = true;
+        }
+        else{
+            $this->message = $this->get_pid().': Editing...';
+        }
+    }
+    
+    protected function _exec(){
+        $this->object->owner=$this->options['owner'];
+        $this->message.=' Owner edited';
+    }
+    
+}
 
 
 
