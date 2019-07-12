@@ -1047,7 +1047,7 @@ class edit_r_ext extends command{
     private function edit_rels_ext(){
         $xpath = new DOMXPath($this->dom_ext);
         $item = $xpath->query("//rdf:RDF/rdf:Description/islandora:inheritXacmlFrom")->item(0);
-        $item->nodeValue = 'info:fedora/psi:publications';
+        $item->setAttribute('rdf:resource','info:fedora/'.$this->options['collection']);
         $this->ext_edited = TRUE;
         $ret = '';
         foreach ($this->dom_ext->childNodes as $node) {
