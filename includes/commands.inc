@@ -1102,3 +1102,28 @@ class edit_owner extends command{
 
 
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+//use the calss first_name as model
+class psi_affiliation extends batch_edit_mods{
+    protected $update_dc = false; // there is no affiliation in dc
+    
+    protected function edit_mxds(){
+        
+        $this->set_dom();
+        $this->set_xpath();
+        $edited = false;
+        // ADD here the logic to change the MODS and set $edited to true if edited
+        
+        
+        ///////////////////////////////////////////////////////////////////////////
+        
+        if ($edited)
+            return $this->get_dom()->saveXML();
+            else
+                return $this->get_mxds_content();
+    }
+}
