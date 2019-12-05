@@ -289,6 +289,7 @@ abstract class batch_edit_mxds extends command{
     }
 
     private static function runXSLTransform($info) {
+        module_load_include('module', 'xml_form_builder', 'xml_form_builder');
         $xsl = new DOMDocument();   
         $xsl->load($info['xsl']);
         
@@ -298,6 +299,7 @@ abstract class batch_edit_mxds extends command{
         $processor = new XSLTProcessor();
         $processor->importStylesheet($xsl);
         
+        $input = xml_form_builder_transform_mods_collection_hack($input);
         return $processor->transformToXML($input);
     }
     
@@ -332,7 +334,8 @@ abstract class batch_edit_mods extends batch_edit_mxds{
     protected $mxds_namespaceURI = 'http://loc.gov/mods/v3'; 
     
     function get_mxds_to_dc(){
-        return drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl';
+//        return drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl';
+        return drupal_get_path('module', 'xml_form_builder') . '/transforms/mods_to_dc.xsl';
     }
 }
 
