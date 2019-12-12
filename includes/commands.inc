@@ -707,6 +707,50 @@ class fetch_pub_ids extends batch_edit_mods{
     
 }
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class regenerate_dc extends batch_edit_mods{
+    protected $update_dc = true;
+    
+    protected function _dry_exec(){
+        //        $this->retrieve_islandora_object();
+        if (in_array("ir:citationCModel", $this->object->models) or in_array("islandora:personCModel", $this->object->models)){
+            $this->retrieve_mxds();
+            $this->retrieve_mxds_content();
+
+            if ($this->update_dc){
+                $this->edit_dc();
+                $this->message.=', DC regenerated';
+                if ($this->options['log_ds'] == true){
+                    $this->log_ds($this->dc_content,'DC_new');
+                    $this->log_ds($this->dc->content,'DC_old');
+                }
+            }
+        }
+        else{
+            $this->message = $this->get_pid().': Not a valid object';
+            $this->stop = true;
+        }
+    }
+    
+    protected function _exec(){
+        if ($this->edited == true){
+            $this->ingest_mxds();
+            if ($this->update_dc)
+                $this->ingest_dc();
+                $this->message.=" - Ingested";
+        }
+        else
+            $this->message.=" - Not ingested";
+    }
+    protected function edit_mxds(){
+        /*required by the parent class but not used here*/
+    }
+
+}
 
 /********************************************************************
  *
