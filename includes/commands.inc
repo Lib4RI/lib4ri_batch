@@ -156,9 +156,9 @@ class show_type extends command{
 abstract class batch_edit_mxds extends command{ 
     
     private   $mxds;
-    private   $dc;
+    protected   $dc;
     private   $mxds_content;
-    private   $dc_content;
+    protected   $dc_content;
     private   $dom;
     private   $xpath;
     protected $edited = false;
@@ -231,13 +231,13 @@ abstract class batch_edit_mxds extends command{
         //$this->retrieve_ds($this->mods, 'MODS');
     }
 
-    private function retrieve_mxds_content(){
+    protected function retrieve_mxds_content(){
         $this->mxds_content = $this->mxds->content;
     }
     
     abstract protected function edit_mxds();
     
-    private function ingest_mxds(){
+    protected function ingest_mxds(){
         $this->mxds->content = $this->mxds_content;
     }
 
@@ -272,7 +272,7 @@ abstract class batch_edit_mxds extends command{
     
     abstract protected function get_mxds_to_dc();
     
-    private function edit_dc(){
+    protected function edit_dc(){
         $this->retrieve_dc();
         $this->dc_content = static::runXSLTransform(array(
             'xsl' => $this->get_mxds_to_dc(),
@@ -282,7 +282,7 @@ abstract class batch_edit_mxds extends command{
         
     }
     
-    private function ingest_dc(){
+    protected function ingest_dc(){
         if (!($this->dc_content === $this->dc->content)) {
             $this->dc->content = $this->dc_content;
         }
@@ -312,7 +312,7 @@ abstract class batch_edit_mxds extends command{
         }
     }  
     
-    private function log_ds($ds_content, $ds_name){
+    protected function log_ds($ds_content, $ds_name){
         $filename = date('Y-m-d_H-i-s').'_'.$this->pid.'_'.$ds_name;
         if ($this->options['wd'])
             $wd = $this->options['wd'].'/';
@@ -717,10 +717,11 @@ class regenerate_dc extends batch_edit_mods{
     
     protected function _dry_exec(){
         //        $this->retrieve_islandora_object();
+        $this->edited = true;
         if (in_array("ir:citationCModel", $this->object->models) or in_array("islandora:personCModel", $this->object->models)){
             $this->retrieve_mxds();
             $this->retrieve_mxds_content();
-
+            $this->message = $this->get_pid();
             if ($this->update_dc){
                 $this->edit_dc();
                 $this->message.=', DC regenerated';
@@ -737,15 +738,12 @@ class regenerate_dc extends batch_edit_mods{
     }
     
     protected function _exec(){
-        if ($this->edited == true){
-            $this->ingest_mxds();
+            
             if ($this->update_dc)
                 $this->ingest_dc();
-                $this->message.=" - Ingested";
-        }
-        else
-            $this->message.=" - Not ingested";
+            $this->message.=" - Ingested";
     }
+    
     protected function edit_mxds(){
         /*required by the parent class but not used here*/
     }
