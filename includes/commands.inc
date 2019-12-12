@@ -221,7 +221,7 @@ abstract class batch_edit_mxds extends command{
     }
     
         
-    private function retrieve_mxds(){
+    protected function retrieve_mxds(){
         foreach ($this->object as $datastream) {
             if ($datastream->id === $this->mxds_type){
                 $this->mxds = $datastream;
