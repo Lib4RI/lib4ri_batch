@@ -569,6 +569,31 @@ class update_aut_dep_name extends batch_edit_mads{
 }
 
 /********************************************************************
+ * Usage example: 
+ *     $command_class = new update_aut_email($pid, $dry, $command_options); 
+ *     return($command_class->exec());
+ *
+ ********************************************************************/
+class update_aut_email extends batch_edit_mads{
+    protected $update_dc = true;
+    
+    protected function edit_mxds(){
+        $this->set_dom();
+        $this->set_xpath();
+        $email = $this->get_xpath()->query('');
+        
+        $edited = false;
+        ////////////////////////
+        // Editing code here
+        /////////////////////
+        
+        if ($edited)
+            return $this->get_dom()->saveXML();
+            else
+                return $this->get_mxds_content();
+    }
+}
+/********************************************************************
  * 
  * 
  * 
