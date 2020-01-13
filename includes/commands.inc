@@ -569,30 +569,130 @@ class update_aut_dep_name extends batch_edit_mads{
 }
 
 /********************************************************************
+ * Function to update the e-mail address in the MADS datastream of an author object (like wsl-authors:5672) where the
+ * e-mail address just exists in the MADS, but not in the DC datastream (also there is only the Solr field MADS_email_m*).
+ * 
  * Usage example: 
- *     $command_class = new update_aut_email($pid, $dry, $command_options); 
- *     return($command_class->exec());
+ *   $command_class = new update_author_email($pid, $dry, $command_options); 
+ *   return($command_class->exec());
+ *
+ * Drush Example Command lines:
+ *   drush -u 1 -r /var/www/html dora-batch --pids=single --pids_options='pid=eawag:1881' --command='update_author_email' --command_options='eMail=null' --dry=true &>/tmp/test-log.txt
+ *   drush -u 1 -r /var/www/html dora-batch --pids=single --pids_options='pid=eawag:1881' --command='update_author_email' --command_options='eMail=some.one@example.com' --dry=false
  *
  ********************************************************************/
-class update_aut_email extends batch_edit_mads{
-    protected $update_dc = true;
-    
-    protected function edit_mxds(){
-        $this->set_dom();
-        $this->set_xpath();
-        $email = $this->get_xpath()->query('');
-        
-        $edited = false;
-        ////////////////////////
-        // Editing code here
-        /////////////////////
-        
-        if ($edited)
-            return $this->get_dom()->saveXML();
-            else
-                return $this->get_mxds_content();
-    }
+class update_author_email extends command{
+
+	private function get_options() {
+		$this->pid = empty($this->get_pid()) ? rawurldecode($this->options['pid']) : $this->get_pid();
+		$this->eMail = !empty($this->options['eMail']) ? $this->options['eMail'] : $this->eMailKill;
+	}
+
+	private function get_mads_content($pidGot) {
+		if ( !( $obj = @islandora_object_load($pidGot) ) ) { return false; }
+		if ( !( $dsContent = @$obj['MADS']->Content ) ) { return false; }
+		return $dsContent;
+	}
+
+	private function setup_em_up(){
+		$this->get_options();
+
+		$this->stop = true;
+		if ( !preg_match('/\w+:\d+/',$this->pid) || !$this->object ) {
+			$this->message .= 'Error: PID missing or Object invalid. ';
+			return false;
+		}
+		if ( !preg_match('/\w+@\w+\./',$this->eMail) ) {
+			$this->message .= 'Error: e-Mail address looks strange, it also not keyword (' . $this->eMailKill . ') to delete it. ';
+			return false;
+		}
+		if ( !@isset($this->object['MADS']) ) {
+			$this->message .= 'Error: MADS datastream not defined or missing. ';
+			return false;
+		}
+		$this->content = $this->get_mads_content($this->pid);	
+		if ( $this->content == false ){
+			$this->message .= 'Error: MADS datastream for '. $this->pid . ' is invalid! ';
+			return false;
+		}
+		$this->stop = false;
+		$this->message .= ' Success: got the MADS datastream for '. $this->pid . '! ';
+	}
+
+	protected function _dry_exec(){
+		$this->stop = true;
+		$this->setup_em_up();
+	}
+
+	protected function _exec(){
+		$this->stop = false;
+		$this->sync_email_mads($this->eMail, $this->pid, $this->object, $this->content);
+	}
+
+	// Intended that sync_email_mads() can be called from 'outside', for example:
+	//	module_load_include('inc', 'lib4ri_batch', 'includes/commands') OR include_once("/var/www/html/sites/all/drush/lib4ri_batch/includes/commands.inc")
+	//	$eMailTuner = new update_author_email("",false,"");
+	//	$eMailTuner->sync_email_mads( 'some.one@example.com', /* psi-authors:1234 */ '', $optionally_loaded_author_object );
+	public function sync_email_mads( $eMailValue = '', $pidNow = '', $object = NULL, $madsContent = '') {
+		if ( strpos($pidNow,":") ) {
+			if ( !( $object = @islandora_object_load($pidNow) ) ) { return false; }
+		}
+		elseif ( $object == NULL ) { return; }
+		if ( stripos($madsContent,"<mads") === false && !( $madsContent = @$object['MADS']->content ) ) { return false; }
+
+		$madsDOM = new DOMDocument("1.0", "UTF-8");
+		$madsDOM->preserveWhiteSpace = false;
+		$madsDOM->formatOutput = true;
+
+		$madsDOM->loadXML($madsContent);
+		$xpath = new DOMXPath($madsDOM);
+		$xpath->registerNamespace('mads', 'http://www.loc.gov/mads/v2');
+
+		$queryPath = "//mads:mads/mads:affiliation/mads:email";		// see: http://www.loc.gov/standards/mads/mads-outline-2-0.html
+		$found1 = false;
+		$edited = false;
+		// assuming there could be more than one <email> element, going to update however just the first one found:
+		foreach($xpath->query($queryPath) as $eMail) {
+			if ( !$found1 && @isset($eMail->nodeValue) ) {
+				$found1 = true;
+			}
+			if( !empty($eMailValue) ) {
+				if ( !$edited && strcmp(strtolower($eMail->nodeValue),strtolower($eMailValue)) !== 0 ) {
+					$eMail->nodeValue = $eMailValue;
+					$edited = true;
+				}
+			}
+			elseif ( !empty($eMail->nodeValue) ) {		// removing it + trying to clean up the XML
+				$parent = $eMail->parentNode;
+				$parent->removeChild($eMail);
+				if ( $parent->hasChildNodes() == false ) {
+					$parent->parentNode->removeChild($parent);	// to remove empty <affiliation/>
+				}
+				$edited = true;
+			}
+		}
+
+		if( !$found1 && !empty($eMailValue) ) {
+			if ( !( $root = @$madsDOM->getElementsByTagName('mads')->item(0) ) ) {
+				$root = $madsDOM->createElement("mads");
+				$madsDOM->appendChild($root);
+			}
+			if ( !( $affil = @$root->getElementsByTagName('affiliation')->item(0) ) ) {
+				$affil = $madsDOM->createElement("affiliation");
+				$root->appendChild($affil);
+			}
+			if ( $eMail = $madsDOM->createElement("email", $eMailValue) ) {
+				$affil->appendChild($eMail);
+				$edited = true;
+			}
+		}
+
+		if ( $edited ) {
+			$object['MADS']->content = $madsDOM->saveXML();
+		}
+	}
 }
+
 /********************************************************************
  * 
  * 
