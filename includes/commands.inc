@@ -584,8 +584,8 @@ class update_aut_dep_name extends batch_edit_mads{
 class update_author_email extends command{
 
 	private function get_options() {
-		$this->pid = empty($this->get_pid()) ? rawurldecode($this->options['pid']) : $this->get_pid();
-		$this->eMail = !empty($this->options['eMail']) ? $this->options['eMail'] : $this->eMailKill;
+		$this->pid = empty($this->get_pid()) ? @rawurldecode($this->options['pid']) : $this->get_pid();
+		$this->eMail = @trim($this->options['eMail']);
 	}
 
 	private function get_mads_content($pidGot) {
@@ -602,8 +602,15 @@ class update_author_email extends command{
 			$this->message .= 'Error: PID missing or Object invalid. ';
 			return false;
 		}
-		if ( !preg_match('/\w+@\w+\./',$this->eMail) ) {
-			$this->message .= 'Error: e-Mail address looks strange, it also not keyword (' . $this->eMailKill . ') to delete it. ';
+		if ( strpos("/null/none/delete/purge/",strtolower($this->eMail)) ) {
+			$this->eMail = "";
+		}
+		elseif ( empty($this->eMail) ) {
+			$this->message .= "Error: e-Mail address is empty (use keyword 'null' to remove it)! ";
+			return false;
+		}
+		elseif ( !preg_match('/\w+@\w+\./',$this->eMail) ) {
+			$this->message .= "Error: e-Mail '" . $this->eMail . "' looks strange! ";
 			return false;
 		}
 		if ( !@isset($this->object['MADS']) ) {
@@ -624,7 +631,7 @@ class update_author_email extends command{
 		$this->setup_em_up();
 	}
 
-	protected function _exec(){
+	protected function _exec(){			// will call _dry_exec()
 		$this->stop = false;
 		$this->sync_email_mads($this->eMail, $this->pid, $this->object, $this->content);
 	}
