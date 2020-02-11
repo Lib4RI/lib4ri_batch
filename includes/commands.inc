@@ -884,6 +884,62 @@ class regenerate_dc extends batch_edit_mods{
 
 /********************************************************************
  *
+ * Intended to exectute any PHP code from a file on the server. It is recommended to avoid initial PHP tags in this file, just plain code.
+ * Put this file here \\eaw-projects\Lib4RI_DORA_archive$\all\batch-work (Windows) resp. /var/www/html/data/batch-work/ (CentOS)
+ *
+ * Example :
+ * drush -u 1 -r /var/www/html dora-batch --pids=single --command=process_code --command_options='file=test-code2.txt' --dry=false
+ * 
+ ********************************************************************/
+class process_code extends command{
+
+    protected function retrieve_islandora_object() {	// override
+        $this->object = true;
+    }  
+
+	private function get_options() {
+		$this->file = $this->options['file'];
+		$this->dir = ( empty($this->options['dir']) && substr($this->file,0,1) != '/' ) ? '/var/www/html/data/batch-work/' : @$this->options['dir'];
+	}
+
+	private function get_content($file,$dir = '') {
+		if ( !empty($dir) && substr($file,0,1) != '/' ) {
+			$file = rtrim($dir,'/') . '/' . $file;
+		}
+		if ( $content = @trim(file_get_contents($file)) ) {
+			return $content;
+		}
+		return false;
+	}
+
+	private function setup_code(){
+		$this->get_options();
+		$this->content = $this->get_content($this->file,$this->dir);	
+		if ( $this->content == false ){
+			$this->message .= " Error: Could not read file '" . $this->file . "', cancelling now!";
+			return false;
+		}
+		$this->message .= " Notice: Found file '" . $this->file . "', going to evaluate it...!";
+		$this->stop = false;
+	}
+
+	protected function _dry_exec(){
+		$this->stop = true;
+		$this->setup_code();
+	}
+
+	protected function _exec(){
+		$this->stop = false;
+		$this->evaluate_code($this->content);
+	}
+
+	protected function evaluate_code($phpCode) {
+		@eval($phpCode);
+	}
+}
+
+/********************************************************************
+ *
  * class functions to add a PDF(A) datastream
  * based on class cit_count_ingest
  * Example :
