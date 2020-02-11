@@ -902,11 +902,8 @@ class process_code extends command{
 		$this->dir = ( empty($this->options['dir']) && substr($this->file,0,1) != '/' ) ? '/var/www/html/data/batch-work/' : @$this->options['dir'];
 	}
 
-	private function get_content($file,$dir = '') {
-		if ( !empty($dir) && substr($file,0,1) != '/' ) {
-			$file = rtrim($dir,'/') . '/' . $file;
-		}
-		if ( $content = @trim(file_get_contents($file)) ) {
+	private function get_content($path) {
+		if ( $content = @trim(file_get_contents($path)) ) {
 			return $content;
 		}
 		return false;
@@ -914,7 +911,8 @@ class process_code extends command{
 
 	private function setup_code(){
 		$this->get_options();
-		$this->content = $this->get_content($this->file,$this->dir);	
+		$this->path = ( empty($this->dir) ? $this->file : rtrim($this->dir,'/').'/'.ltrim($this->file,'/') );
+		$this->content = $this->get_content($this->path);	
 		if ( $this->content == false ){
 			$this->message .= " Error: Could not read file '" . $this->file . "', cancelling now!";
 			return false;
@@ -930,11 +928,15 @@ class process_code extends command{
 
 	protected function _exec(){
 		$this->stop = false;
-		$this->evaluate_code($this->content);
+		$this->include_code($this->content);
 	}
 
-	protected function evaluate_code($phpCode) {
-		@eval($phpCode);
+	protected function include_code($phpCode) {
+		$tmpFile = '/tmp/batch-php-code.' . date("Y-m-d.H-i-s.") . uniqid() .'.inc';
+		if ( strpos(substr($phpCode,0,19),'<'.'?'.'php') === false ) { $phpCode = '<'.'?'.'php'."\r\n".$phpCode; }
+		if ( strpos(substr($phpCode,0,-9),'?'.'>') === false ) { $phpCode .= "\r\n".'?'.'>'; }
+		file_put_contents($tmpFile,$phpCode);
+		if ( @filesize($tmpFile) ) { include_once($tmpFile); }
 	}
 }
 
