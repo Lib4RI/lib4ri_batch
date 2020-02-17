@@ -602,14 +602,14 @@ class update_author_email extends command{
 			$this->message .= 'Error: PID missing or Object invalid. ';
 			return false;
 		}
-		if ( strpos("/null/none/delete/purge/",strtolower($this->eMail)) ) {
-			$this->eMail = "";
+		if ( in_array(strtolower($this->eMail),array('null','none','delete','purge')) ) {
+			$this->eMail = 'null';
 		}
 		elseif ( empty($this->eMail) ) {
 			$this->message .= "Error: e-Mail address is empty (use keyword 'null' to remove it)! ";
 			return false;
 		}
-		elseif ( !preg_match('/\w+@\w+\./',$this->eMail) ) {
+		elseif ( !preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,9})$/i',$this->eMail) ) {
 			$this->message .= "Error: e-Mail '" . $this->eMail . "' looks strange! ";
 			return false;
 		}
@@ -633,18 +633,30 @@ class update_author_email extends command{
 
 	protected function _exec(){			// will call _dry_exec()
 		$this->stop = false;
-		$this->sync_email_mads($this->eMail, $this->pid, $this->object, $this->content);
+		$this->sync_email_mads($this->eMail, $this->pid, $this->object, $this->content, TRUE);
 	}
 
 	// Intended that sync_email_mads() can be called from 'outside', for example:
-	//	module_load_include('inc', 'lib4ri_batch', 'includes/commands') OR include_once("/var/www/html/sites/all/drush/lib4ri_batch/includes/commands.inc")
-	//	$eMailTuner = new update_author_email("",false,"");
-	//	$eMailTuner->sync_email_mads( 'some.one@example.com', /* psi-authors:1234 */ '', $optionally_loaded_author_object );
-	public function sync_email_mads( $eMailValue = '', $pidNow = '', $object = NULL, $madsContent = '') {
-		if ( strpos($pidNow,":") ) {
+	//	  module_load_include('inc', 'lib4ri_batch', 'includes/commands') OR include_once("/var/www/html/sites/all/drush/lib4ri_batch/includes/commands.inc")
+	//	  $eMailTuner = new update_author_email("",false,"");
+	//	  $eMailTuner->sync_email_mads( 'some.one@example.com', /* psi-authors:1234 */ '', $optionally_loaded_author_object );
+	// Note:  - $eMailValue must *not* be empty, use keyword 'null' to remove an e-mail address.
+	//        - This function does not give any status messages.
+	public function sync_email_mads( $eMailValue = '', $pidNow = '', $object = NULL, $madsContent = '', $simpleCheck = FALSE ) {
+		if ( $simpleCheck ) {
+			if ( strtolower($eMailValue) != 'null' && !strpos($eMailValue,'@') ) { return false; } 
+		}
+		elseif ( strtolower($eMailValue) != 'null' && !preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,9})$/i',$eMailValue) ) {
+			return false;
+		}
+		if ( $eMailValue == 'null' ) { $eMailValue = ''; }
+
+		if ( ( $simpleCheck && strpos($pidNow,":") ) || ( !$simpleCheck && preg_match('/\w+:\d+/',$pidNow) ) ) {
 			if ( !( $object = @islandora_object_load($pidNow) ) ) { return false; }
 		}
-		elseif ( $object == NULL ) { return; }
+		elseif ( $object == NULL ) {
+			return false;
+		}
 		if ( stripos($madsContent,"<mads") === false && !( $madsContent = @$object['MADS']->content ) ) { return false; }
 
 		$madsDOM = new DOMDocument("1.0", "UTF-8");
@@ -933,9 +945,10 @@ class process_code extends command{
 
 	protected function include_code($phpCode) {
 		$tmpFile = '/tmp/batch-php-code.' . date("Y-m-d.H-i-s.") . uniqid() .'.inc';
-		if ( strpos(substr($phpCode,0,19),'<'.'?'.'php') === false ) { $phpCode = '<'.'?'.'php'."\r\n".$phpCode; }
-		if ( strpos(substr($phpCode,0,-9),'?'.'>') === false ) { $phpCode .= "\r\n".'?'.'>'; }
-		file_put_contents($tmpFile,$phpCode);
+		if ( stripos(substr(ltrim($phpCode),0,9),'<'.'?'.'php') === false && strpos(substr(rtrim($phpCode),-5),'?'.'>') === false ) {
+			$phpCode = '<'.'?'.'php'."\r\n".trim($phpCode);
+		}
+		@file_put_contents($tmpFile,$phpCode);
 		if ( @filesize($tmpFile) ) { include_once($tmpFile); }
 	}
 }
