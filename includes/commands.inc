@@ -900,7 +900,7 @@ class regenerate_dc extends batch_edit_mods{
  * Put this file here \\eaw-projects\Lib4RI_DORA_archive$\all\batch-work (Windows) resp. /var/www/html/data/batch-work/ (CentOS)
  *
  * Example :
- * drush -u 1 -r /var/www/html dora-batch --pids=single --command=process_code --command_options='file=test-code2.txt' --dry=false
+ * drush -u 1 -r /var/www/html dora-batch --pids=single --command=process_code --command_options='file=code.txt|query(url)=x%3d789' --dry=false
  * 
  ********************************************************************/
 class process_code extends command{
@@ -910,7 +910,7 @@ class process_code extends command{
     }  
 
 	private function get_options() {
-		$this->file = $this->options['file'];
+		$this->file = @trim( $this->options['file'] );
 		$this->dir = ( empty($this->options['dir']) && substr($this->file,0,1) != '/' ) ? '/var/www/html/data/batch-work/' : @$this->options['dir'];
 	}
 
@@ -940,16 +940,34 @@ class process_code extends command{
 
 	protected function _exec(){
 		$this->stop = false;
-		$this->include_code($this->content);
+		$this->include_code($this->file,$this->content,$this->options);
 	}
 
-	protected function include_code($phpCode) {
-		$tmpFile = '/tmp/batch-php-code.' . date("Y-m-d.H-i-s.") . uniqid() .'.inc';
-		if ( stripos(substr(ltrim($phpCode),0,9),'<'.'?'.'php') === false && strpos(substr(rtrim($phpCode),-5),'?'.'>') === false ) {
-			$phpCode = '<'.'?'.'php'."\r\n".trim($phpCode);
+	protected function include_code( $incFile, $phpCode, $optAry = array() ) {
+		// get varibles from command-options:
+		foreach($optAry as $varName => $value) {
+			$varName = trim($varName);
+			if ( substr($varName,-5) == '(url)' ) {		// example: query(url)=x%3d789 becomes $query = 'x=789'
+				$varName = rtrim(substr($varName,0,-5));
+				$$varName = rawurldecode($value);
+			}
+			elseif ( !empty($varName) ) { $$varName = $value; }
 		}
-		@file_put_contents($tmpFile,$phpCode);
-		if ( @filesize($tmpFile) ) { include_once($tmpFile); }
+		// try to include the file:
+		if ( in_array(strrchr($incFile,'.'),array('module','php','inc')) ) {
+			@include_once($incFile);
+			return $incFile;
+		} else {
+			$tmpFile = '/tmp/batch-php-code.' . date("Y-m-d.H-i-s.") . uniqid() .'.inc';
+			if ( stripos(substr(ltrim($phpCode),0,9),'<'.'?'.'php') === false && strpos(substr(rtrim($phpCode),-5),'?'.'>') === false ) {
+				$phpCode = '<'.'?'.'php'."\r\n".trim($phpCode);
+			}
+			if ( @file_put_contents($tmpFile,$phpCode) && @filesize($tmpFile) ) {
+				@include_once($tmpFile);
+				return $tmpFile;
+			}
+		}
+		return FALSE;
 	}
 }
 
