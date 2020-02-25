@@ -910,8 +910,7 @@ class process_code extends command{
     }  
 
 	private function get_options() {
-		$this->file = @trim( $this->options['file'] );
-		$this->dir = ( empty($this->options['dir']) && substr($this->file,0,1) != '/' ) ? '/var/www/html/data/batch-work/' : @$this->options['dir'];
+		$this->file = @trim( $this->options['file'] );			// file *path*
 	}
 
 	private function get_content($path) {
@@ -923,13 +922,12 @@ class process_code extends command{
 
 	private function setup_code(){
 		$this->get_options();
-		$this->path = ( empty($this->dir) ? $this->file : rtrim($this->dir,'/').'/'.ltrim($this->file,'/') );
-		$this->content = $this->get_content($this->path);	
+		$this->content = $this->get_content($this->file);
 		if ( $this->content == false ){
 			$this->message .= " Error: Could not read file '" . $this->file . "', cancelling now!";
 			return false;
 		}
-		$this->message .= " Notice: Found file '" . $this->file . "', going to evaluate it...!";
+		$this->message .= " Notice: Found file '" . basename($this->file) . "', going to evaluate it...!";
 		$this->stop = false;
 	}
 
@@ -953,19 +951,19 @@ class process_code extends command{
 			}
 			elseif ( !empty($varName) ) { $$varName = $value; }
 		}
-		// try to include the file:
+		// try to include the file once:
 		if ( in_array(strrchr($incFile,'.'),array('module','php','inc')) ) {
 			@include_once($incFile);
 			return $incFile;
-		} else {
-			$tmpFile = '/tmp/batch-php-code.' . date("Y-m-d.H-i-s.") . uniqid() .'.inc';
-			if ( stripos(substr(ltrim($phpCode),0,9),'<'.'?'.'php') === false && strpos(substr(rtrim($phpCode),-5),'?'.'>') === false ) {
-				$phpCode = '<'.'?'.'php'."\r\n".trim($phpCode);
-			}
-			if ( @file_put_contents($tmpFile,$phpCode) && @filesize($tmpFile) ) {
-				@include_once($tmpFile);
-				return $tmpFile;
-			}
+		}
+		$tmpFile = ( @empty($optAry['tmpId']) ? ( date("Y-m-d.H-i-s.") . uniqid() ) : $optAry['tmpId'] );
+		$tmpFile = '/tmp/batch-php-code.' . $tmpFile . '.inc';
+		if ( stripos(substr(ltrim($phpCode),0,9),'<'.'?'.'php') === false && strpos(substr(rtrim($phpCode),-5),'?'.'>') === false ) {
+			$phpCode = '<'.'?'.'php'."\r\n".trim($phpCode);
+		}
+		if ( @file_put_contents($tmpFile,$phpCode) && @filesize($tmpFile) ) {
+			@include_once($tmpFile);
+			return $tmpFile;
 		}
 		return FALSE;
 	}
