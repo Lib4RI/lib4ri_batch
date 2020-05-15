@@ -1402,8 +1402,8 @@ class upd_facilities extends batch_edit_mods{
     
     protected function edit_mxds(){
         
-        $current = explode(';',$this->options['current']);
-        $new = explode(';',$this->options['new']);
+        $current = $this->options['current'];
+        $new = $this->options['new'];
         
         $this->set_dom();
         $this->set_xpath();
@@ -1411,7 +1411,7 @@ class upd_facilities extends batch_edit_mods{
         
         $facilities = $this->get_xpath()->query("//mods:mods/mods:extension/researchFacilities/researchFacility");
         foreach ($facilities as $facility){
-            $fac = getElementsByTagName('facility');
+            $fac = $facility->getElementsByTagName('facility');
             
             if ($fac->item(0)->nodeValue == $current){
                 $fac->item(0)->nodeValue = $new;
