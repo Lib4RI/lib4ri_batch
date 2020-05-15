@@ -1409,7 +1409,7 @@ class upd_facilities extends batch_edit_mods{
         $this->set_xpath();
         $edited = false;
         
-        $facilities = $this->get_xpath()->query("//mods:mods/mods:extension/researchFacilities/researchFacility");
+        $facilities = $this->get_xpath()->query("//mods:mods/mods:extension/mods:researchFacilities/mods:researchFacility");
         foreach ($facilities as $facility){
             $fac = $facility->getElementsByTagName('facility');
             
