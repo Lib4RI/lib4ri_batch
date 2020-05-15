@@ -1391,3 +1391,38 @@ class psi_affiliation extends batch_edit_mods{
                 return $this->get_mxds_content();
     }
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class upd_facilities extends batch_edit_mods{
+    protected $update_dc = true;
+    
+    protected function edit_mxds(){
+        
+        $current = explode(';',$this->options['current']);
+        $new = explode(';',$this->options['new']);
+        
+        $this->set_dom();
+        $this->set_xpath();
+        $edited = false;
+        
+        $facilities = $this->get_xpath()->query("//mods:mods/mods:extension/researchFacilities/researchFacility");
+        foreach ($facilities as $facility){
+            $fac = getElementsByTagName('facility');
+            
+            if ($fac->item(0)->nodeValue == $current){
+                $fac->item(0)->nodeValue = $new;
+                $edited = true;
+            }
+            
+        }
+                
+        if ($edited)
+            return $this->get_dom()->saveXML();
+        else
+            return $this->get_mxds_content();
+    }
+}
