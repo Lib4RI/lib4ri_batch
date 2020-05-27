@@ -1413,9 +1413,17 @@ class upd_facilities extends batch_edit_mods{
         foreach ($facilities as $facility){
             $fac = $facility->getElementsByTagName('facility');
             
-            if ($fac->item(0)->nodeValue == $current){
-                $fac->item(0)->nodeValue = $new;
-                $edited = true;
+            if ($new === ''){
+                if ($fac->item(0)->nodeValue == $current){
+                    $facility->parentNode->removeChild($facility);
+                }
+            }
+            
+            else{
+                if ($fac->item(0)->nodeValue == $current){
+                    $fac->item(0)->nodeValue = $new;
+                    $edited = true;
+                }
             }
             
         }
