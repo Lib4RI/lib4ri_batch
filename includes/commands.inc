@@ -1416,6 +1416,7 @@ class upd_facilities extends batch_edit_mods{
             if ($new === ''){
                 if ($fac->item(0)->nodeValue == $current){
                     $facility->parentNode->removeChild($facility);
+                    $edited = true;
                 }
             }
             
