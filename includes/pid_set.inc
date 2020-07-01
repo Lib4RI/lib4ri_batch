@@ -22,6 +22,10 @@ abstract class get_pids{
         return trim(array_pop($this->pids),"\n\r");
     }
     
+    public function get_pids_list(){
+        return implode("", array_reverse($this->pids));
+    }
+    
 }
 
 class single extends get_pids{
@@ -84,7 +88,7 @@ class solr_search extends get_pids{
         foreach ($results as $result){
             array_push($pids, $result['PID']);
         }
-        return $pids;
+        return array_reverse($pids);
     }
 }
 

@@ -23,7 +23,9 @@ function lib4ri_batch_drush_command() {
             'command' => array('description' => dt('The command to apply')),
             'command_options' => array('description' => dt('Option relevent to command')),
             'log' => array('description' => dt('wheter to log executed commands')),
-            'log_options' => array('description' => dt('Option relevent to logging')),
+            'log_options' => array('description' => dt('Option relevant to logging')),
+            'pids_log' => array('description' => dt('wheter to log pids list')),
+            'pids_log_options' => array('description' => dt('Option relevant pids list logging')),
             'dry' => array('description' => dt('Dry run')),
       ),
     ),
@@ -34,15 +36,21 @@ function lib4ri_batch_drush_command() {
  * Drush command.
  * drush_[MODULE_NAME]_[COMMAND_NAME]().
  */
-function drush_lib4ri_batch_dora_batch($pids = null, $pids_options = null, $command = null, $command_options = null, $log = null, $log_options = null, $dry = true ) {
+function drush_lib4ri_batch_dora_batch($pids = null, $pids_options = null, $command = null, $command_options = null, $log = null, $log_options = null, $pids_log = null, $pids_log_options = null, $dry = true ) {
     $command = drush_get_option('command');
 
     $log_o = drush_get_option('log');
     if ($log_o == 'true') //Default to true
         $log = true;
-        else
+    else
        $log = false;
-            
+
+   $pids_log_o = drush_get_option('pids_log');
+   if ($pids_log_o == 'true') //Default to true
+       $pids_log = true;
+   else
+       $pids_log = false;               
+       
     $dry_o = drush_get_option('dry');
     if ($dry_o == 'false') //Default to true
         $dry = false;
@@ -59,7 +67,7 @@ function drush_lib4ri_batch_dora_batch($pids = null, $pids_options = null, $comm
         return 'Command unknown!';
     }
     
-    batch_set(lib4ri_batch_dora_batch_batch(drush_get_option('pids'), read_options(drush_get_option('pids_options')), $command, read_options(drush_get_option('command_options')), $log, read_options(drush_get_option('log_options')), $dry));
+    batch_set(lib4ri_batch_dora_batch_batch(drush_get_option('pids'), read_options(drush_get_option('pids_options')), $command, read_options(drush_get_option('command_options')), $log, read_options(drush_get_option('log_options')), $pids_log, read_options(drush_get_option('pids_log_options')), $dry));
     drush_backend_batch_process();
 }
 
@@ -67,7 +75,7 @@ function drush_lib4ri_batch_dora_batch($pids = null, $pids_options = null, $comm
  * Batch process definition for the repository duplicator command.
  *
  */
-function lib4ri_batch_dora_batch_batch($pids, $pids_options, $command, $command_options, $log, $log_options, $dry) {
+function lib4ri_batch_dora_batch_batch($pids, $pids_options, $command, $command_options, $log, $log_options, $pids_log, $pids_log_options, $dry) {
     return array(
         'title' => t('drush_lib4ri_batch_dora_batch'),
         'init_message' => t("..."),
@@ -76,7 +84,7 @@ function lib4ri_batch_dora_batch_batch($pids, $pids_options, $command, $command_
         'operations' => array(
             array(
                 'lib4ri_batch_dora_batch_batch_operation',
-                array($pids, $pids_options, $command, $command_options, $log, $log_options, $dry),
+                array($pids, $pids_options, $command, $command_options, $log, $log_options, $pids_log, $pids_log_options, $dry),
             ),
         ),
     );
@@ -86,7 +94,7 @@ function lib4ri_batch_dora_batch_batch($pids, $pids_options, $command, $command_
  * Batch operation for repository duplicator.
  *
  */
-function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command, $command_options, $log, $log_options, $dry, &$context) {
+function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command, $command_options, $log, $log_options, $pids_log, $pids_log_options, $dry, &$context) {
 //     module_load_include('inc', 'lib4ri_batch_edit_mods', 'includes/lib4ri_batch_edit_mods');
     $sandbox = &$context['sandbox'];
     // Establish the connection to tuque; this is where the magic starts.
@@ -105,10 +113,17 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
             return;
         }
         
+        var_dump($pids_log);
+        if ($pids_log){
+            $sandbox['pids_log'] = new filelog($pids_log_options);
+            $sandbox['pids_log']->log_plain($sandbox['pids_class']->get_pids_list());
+            $sandbox['pids_log']->close();
+        }
+        
         if ($log){
             $sandbox['log'] = new filelog($log_options);
-            $sandbox['log']->log_plain('PIDs retieval method: '.$pids);
-            $sandbox['log']->log_plain('PIDs retieval options: '.json_encode($pids_options));
+            $sandbox['log']->log_plain('PIDs retrieval method: '.$pids);
+            $sandbox['log']->log_plain('PIDs retrieval options: '.json_encode($pids_options));
             $sandbox['log']->log_plain('Command: '.$command);
             $sandbox['log']->log_plain('Command options: '.json_encode($command_options));
             $sandbox['log']->log_plain('Dry run: '.$dry);
