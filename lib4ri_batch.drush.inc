@@ -113,7 +113,6 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
             return;
         }
         
-        var_dump($pids_log);
         if ($pids_log){
             $sandbox['pids_log'] = new filelog($pids_log_options);
             $sandbox['pids_log']->log_plain($sandbox['pids_class']->get_pids_list());

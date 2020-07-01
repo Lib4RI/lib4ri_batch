@@ -23,7 +23,7 @@ abstract class get_pids{
     }
     
     public function get_pids_list(){
-        return implode("", array_reverse($this->pids));
+        return implode("\n", array_reverse($this->pids));
     }
     
 }
