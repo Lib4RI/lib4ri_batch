@@ -609,9 +609,18 @@ class update_author_email extends command{
 			$this->message .= "Error: e-Mail address is empty (use keyword 'null' to remove it)! ";
 			return false;
 		}
-		elseif ( !preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,9})$/i',$this->eMail) ) {
-			$this->message .= "Error: e-Mail '" . $this->eMail . "' looks strange! ";
-			return false;
+		else { // We also may get an entire text list (separator hardly known) with multiple e-mail addressES:
+			$eMatchAry = array();
+			preg_match_all('/[a-z0-9]+@[a-z0-9]+\.{1}.[a-z]+/s',$this->eMail,$eMatchAry);
+			if ( @sizeof($eMatchAry[0]) > 1 ) {
+				if ( !preg_match('/[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,9})/i',$this->eMail) ) {
+					$this->message .= "Error: Oddity found in e-Mail addresses '" . $this->eMail . "'! ";
+					return false;
+				}
+			} elseif ( !preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,9})$/i',$this->eMail) ) {
+				$this->message .= "Error: Oddity found in e-Mail address '" . $this->eMail . "'! ";
+				return false;
+			}
 		}
 		if ( !@isset($this->object['MADS']) ) {
 			$this->message .= 'Error: MADS datastream not defined or missing. ';
