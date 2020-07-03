@@ -1458,9 +1458,10 @@ class doi_check extends command{
             $dom = new DOMDocument();
             $dom->loadXML($mods);
             $xpath = new DOMXPath($dom);
-            $doi = $xpath->query(variable_get('lib4ri_pub_ids_doi_mods'))[0];
+            $doi_node = $xpath->query(variable_get('lib4ri_pub_ids_doi_mods'));
             
-            if ($doi){
+            if ($doi_node){
+                $doi = trim($doi_node->item(0)->nodeValue);
                 $ch = curl_init('https://dx.doi.org/'.$doi);
                 curl_setopt($ch, CURLOPT_HEADER, 1);
                 curl_setopt($ch, CURLOPT_NOBODY, 1);
@@ -1469,11 +1470,11 @@ class doi_check extends command{
                 curl_close($ch);
                             
                 if (preg_match('/^HTTP.* 302/', $headers, $matches_http_code) && preg_match('/^Location: (.+)$/im', $headers, $matches)){
-                    return "DOI $doi resolved - $matches[0]";
+                    return "Resolved - DOI $doi - ".trim($matches[0]);
                 }
                 
                 if (preg_match('/^HTTP.* 400/', $headers, $matches_http_code) || preg_match('/^HTTP.* 404/', $headers, $matches_http_code)){
-                    return "DOI $doi NOT resolved";
+                    return "NOT resolved - DOI $doi ";
                 }
             }
             else{
