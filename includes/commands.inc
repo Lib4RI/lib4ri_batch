@@ -1444,3 +1444,52 @@ class upd_facilities extends batch_edit_mods{
             return $this->get_mxds_content();
     }
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class doi_check extends command{
+    private function resolve(AbstractObject $object) {
+        
+        $mods = $object['MODS']->content;
+        if ($mods){
+            $dom = new DOMDocument();
+            $dom->loadXML($mods);
+            $xpath = new DOMXPath($dom);
+            $doi = $xpath->query(variable_get('lib4ri_pub_ids_doi_mods'))[0];
+            
+            if ($doi){
+                $ch = curl_init('https://dx.doi.org/'.$doi);
+                curl_setopt($ch, CURLOPT_HEADER, 1);
+                curl_setopt($ch, CURLOPT_NOBODY, 1);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                $headers = curl_exec($ch);
+                curl_close($ch);
+                            
+                if (preg_match('/^HTTP.* 302/', $headers, $matches_http_code) && preg_match('/^Location: (.+)$/im', $headers, $matches)){
+                    return "DOI $doi resolved - $matches[0]";
+                }
+                
+                if (preg_match('/^HTTP.* 400/', $headers, $matches_http_code) || preg_match('/^HTTP.* 404/', $headers, $matches_http_code)){
+                    return "DOI $doi NOT resolved";
+                }
+            }
+            else{
+                return "DOI not found in MODS";
+            }
+        }
+        else
+            $type = 'WARNING: No MODS!!!';
+       return $type;
+            
+    }
+    protected function _dry_exec(){
+        $this->message.= $this->get_pid().": ".$this->resolve($this->object);
+    }
+    
+    protected function _exec(){
+        return 0;
+    }
+}
