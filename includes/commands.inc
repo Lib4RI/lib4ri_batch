@@ -1469,13 +1469,15 @@ class doi_check extends command{
                 $headers = curl_exec($ch);
                 curl_close($ch);
                             
-                if (preg_match('/^HTTP.* 302/', $headers, $matches_http_code) && preg_match('/^Location: (.+)$/im', $headers, $matches)){
+                if (preg_match('/^Location: (.+)$/im', $headers, $matches)){
                     return "Resolved - DOI: $doi - ".trim($matches[0]);
                 }
                 
                 if (preg_match('/^HTTP.* 400/', $headers, $matches_http_code) || preg_match('/^HTTP.* 404/', $headers, $matches_http_code)){
                     return "NOT resolved - DOI: $doi ";
                 }
+                
+                return "Status UNKWNOWN";
             }
             else{
                 return "DOI not found in MODS";
