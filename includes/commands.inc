@@ -322,6 +322,11 @@ abstract class batch_edit_mxds extends command{
         fwrite($fid, $ds_content);
         fclose($fid);
     }
+    
+    protected function update_dc($upd_dc){
+        $this->$update_dc = $upd_dc;
+        return $this;
+    }
 }
 
 /********************************************************************
@@ -1495,4 +1500,44 @@ class doi_check extends command{
     protected function _exec(){
         return 0;
     }
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class delete_mods_tag extends batch_edit_mods{
+    protected $update_dc = FALSE; 
+    
+    protected function edit_mxds(){
+        $edited = false;
+        $tag_name = $this->options['tag-name'];
+        $type = $this->options['type'];
+        if ($this->options['upd_dc']){
+            $this->update_dc($this->options['upd_dc']);
+        }
+        
+        $this->set_dom();
+        $this->set_xpath();
+        $query = "mods:$tag_name";
+        if (!is_null($type)){
+            $query .= " [@type= \"${type}\"]";
+        }
+        
+        $items = $this->get_xpath()->query($query);
+        
+        foreach ($items as $item){
+            $item->parentNode->removeChild($item);
+            $edited = true;
+        }
+        
+        if ($edited){
+            return $this->get_dom()->saveXML();
+        }
+        else{
+            return $this->get_mxds_content();
+        }
+    }
+
 }
