@@ -1541,3 +1541,50 @@ class delete_mods_tag extends batch_edit_mods{
     }
 
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class update_quality_control extends batch_edit_mods{
+    protected $update_dc = false;
+    
+    protected function edit_mxds(){
+        $this->set_dom();
+        $this->set_xpath();
+        $section_dep = $this->get_xpath()->query('//mods:mods/mods:note [@type="department descriptor"]')->item(0);
+        $section_qc = $this->get_xpath()->query('//mods:mods/mods:note [@type="quality_control"]')->item(0);
+        $section_qc_id = $this->get_xpath()->query('//mods:mods/mods:note [@type="quality_control_ID"]')->item(0);
+        
+        if ($section_qc === NULL){
+            $section_qc = $this->get_dom()->createElement('note');
+            $attribute = $this->get_dom()->createAttribute('quality_control');
+            $attribute->value = 'Yes';
+            $add_info_elem->appendChild($attribute);
+            $this->get_dom()->firstChild->appendChild($section_qc);
+        }
+        else{
+            $section_qc->nodeValue = 'Yes'; 
+        }
+
+        if ($section_qc_id === NULL){
+            $section_qc_id = $this->get_dom()->createElement('note');
+            $attribute = $this->get_dom()->createAttribute('quality_control');
+            $attribute->value = $section_dep->nodeValue;
+            $add_info_elem->appendChild($attribute);
+            $this->get_dom()->firstChild->appendChild($section_qc_id);
+        }
+        else{
+            $section_qc_id->nodeValue = $section_dep->nodeValue; 
+        }
+        
+        $edited = true;
+        
+        if ($edited)
+            return $this->get_dom()->saveXML();
+        else
+            return $this->get_mxds_content();
+    }
+}
+    
