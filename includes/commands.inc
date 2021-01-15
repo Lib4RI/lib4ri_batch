@@ -604,7 +604,7 @@ class update_author_email extends command{
 
 		$this->stop = true;
 		if ( !preg_match('/\w+:\d+/',$this->pid) || !$this->object ) {
-			$this->message .= 'Error: PID missing or Object invalid. ';
+			$this->message .= 'Error: PID missin"," Object invalid. ';
 			return false;
 		}
 		if ( in_array(strtolower($this->eMail),array('null','none','delete','purge')) ) {
@@ -1551,40 +1551,92 @@ class update_quality_control extends batch_edit_mods{
     protected $update_dc = false;
     
     protected function edit_mxds(){
+        
+        $edited = false;
+        $initials = array("jhb","lk","nk","ln","cb","vmv","sl","sg","nh","mb","cv","tk","wn","sco","so","ps","nc","sgi","jl","nci","lm","jb","sge ","cm","ub","if","sc");
+        $initials_ok = [];
+        
         $this->set_dom();
         $this->set_xpath();
         $section_dep = $this->get_xpath()->query('//mods:mods/mods:note [@type="department descriptor"]')->item(0);
-        $section_qc = $this->get_xpath()->query('//mods:mods/mods:note [@type="quality_control"]')->item(0);
-        $section_qc_id = $this->get_xpath()->query('//mods:mods/mods:note [@type="quality_control_ID"]')->item(0);
         
-        if ($section_qc === NULL){
-            $section_qc = $this->get_dom()->createElement('note');
-            $attribute = $this->get_dom()->createAttribute('quality_control');
-            $attribute->value = 'Yes';
-            $add_info_elem->appendChild($attribute);
-            $this->get_dom()->firstChild->appendChild($section_qc);
-        }
-        else{
-            $section_qc->nodeValue = 'Yes'; 
-        }
-
-        if ($section_qc_id === NULL){
-            $section_qc_id = $this->get_dom()->createElement('note');
-            $attribute = $this->get_dom()->createAttribute('quality_control');
-            $attribute->value = $section_dep->nodeValue;
-            $add_info_elem->appendChild($attribute);
-            $this->get_dom()->firstChild->appendChild($section_qc_id);
-        }
-        else{
-            $section_qc_id->nodeValue = $section_dep->nodeValue; 
+        /************************************************************************/
+//         foreach ($initials as $initial){
+//             if(stripos($section_dep->nodeValue, $initial) !== false){
+//                 array_push($initials_ok, $initial);
+//             }
+//         }
+        $initials_ok = array_intersect($initials, array_map('strtolower',array_map('trim',explode(',',$section_dep->nodeValue))));
+        var_dump(array_map('strtolower',array_map('trim',explode(',',$section_dep->nodeValue))));
+                
+        if ((sizeof($initials_ok) != 0)){
+            $section_qc = $this->get_xpath()->query('//mods:mods/mods:note [@type="quality_control"]')->item(0);
+            $section_qc_id = $this->get_xpath()->query('//mods:mods/mods:note [@type="quality_control_ID"]')->item(0);
+            
+            $initials_ok_string = implode(',', $initials_ok );
+            
+            if ((sizeof($initials_ok) == 1) && $initials_ok_string == 'cro'){
+                $qc_value = '';
+            }
+            else{
+                $qc_value = 'Yes';
+            }
+            
+            if ($section_qc === NULL){
+                $section_qc = $this->get_dom()->createElement('note');
+                $attribute = $this->get_dom()->createAttribute('type');
+                $attribute->value = 'quality_control';
+                $section_qc->appendChild($attribute);
+                $section_qc->nodeValue = $qc_value;
+                $this->get_dom()->firstChild->appendChild($section_qc);
+            }
+            else{
+                $section_qc->nodeValue = $qc_value; 
+            }
+    
+            if ($section_qc_id === NULL){
+                $section_qc_id = $this->get_dom()->createElement('note');
+                $attribute = $this->get_dom()->createAttribute('type');
+                $attribute->value = 'quality_control_ID';
+                $section_qc_id->appendChild($attribute);
+                $section_qc_id->nodeValue = $initials_ok_string;
+                $this->get_dom()->firstChild->appendChild($section_qc_id);
+            }
+            else{
+                $section_qc_id->nodeValue = $initials_ok_string; 
+            }
+            
+            $edited = true;
         }
         
-        $edited = true;
+        /************************************************************************/
+        if(stripos($section_dep->nodeValue, 'jt') != false){
+            $section_notes = $this->get_xpath()->query('//mods:mods/mods:note [@type="notes_lib4ri"]')->item(0);
+            
+            if ($section_notes === NULL){
+                $section_notes = $this->get_dom()->createElement('note');
+                $attribute = $this->get_dom()->createAttribute('type');
+                $attribute->value = 'notes_lib4ri';
+                $section_notes->appendChild($attribute);
+                $section_notes->nodeValue = $section_notes->nodeValue.' jt';
+                $this->get_dom()->firstChild->appendChild($section_qc_id);
+            }
+            else{
+                $section_notes->nodeValue = $attribute->value.' jt';
+            }
+            
+            $edited = true;
+        }
         
-        if ($edited)
+        
+        /************************************************************************/
+        if ($edited){
+            $section_dep->nodeValue = '';
             return $this->get_dom()->saveXML();
-        else
+        }
+        else{
             return $this->get_mxds_content();
+        }
     }
 }
     
