@@ -1570,6 +1570,7 @@ class update_quality_control extends batch_edit_mods{
         $string = str_replace(',',' ',$string);
         $string = str_replace(';',' ',$string);
         $string = str_replace('\\',' ',$string);
+        $string = preg_replace('!\s+!', ' ', $string);
         $initials_ok = array_intersect($initials, array_map('strtolower',array_map('trim',explode(' ',$string))));
         var_dump(array_map('strtolower',array_map('trim',explode(' ',$string))));
                 
