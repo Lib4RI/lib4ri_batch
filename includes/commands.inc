@@ -1566,8 +1566,12 @@ class update_quality_control extends batch_edit_mods{
 //                 array_push($initials_ok, $initial);
 //             }
 //         }
-        $initials_ok = array_intersect($initials, array_map('strtolower',array_map('trim',explode(' ',str_replace(',',' ',$section_dep->nodeValue)))));
-        var_dump(array_map('strtolower',array_map('trim',explode(' ',str_replace(',',' ',$section_dep->nodeValue)))));
+        $string = $section_dep->nodeValue;
+        $string = str_replace(',',' ',$string);
+        $string = str_replace(';',' ',$string);
+        $string = str_replace('\\',' ',$string);
+        $initials_ok = array_intersect($initials, array_map('strtolower',array_map('trim',explode(' ',$string))));
+        var_dump(array_map('strtolower',array_map('trim',explode(' ',$string))));
                 
         if ((sizeof($initials_ok) != 0)){
             $section_qc = $this->get_xpath()->query('//mods:mods/mods:note [@type="quality_control"]')->item(0);
