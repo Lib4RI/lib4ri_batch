@@ -1553,7 +1553,7 @@ class update_quality_control extends batch_edit_mods{
     protected function edit_mxds(){
         
         $edited = false;
-        $initials = array("jhb","lk","nk","ln","cb","vmv","sl","sg","nh","mb","cv","tk","wn","sco","cro","so","ps","nc","sgi","jl","nci","lm","jb","sge ","cm","ub","if","sc");
+        $initials = array("jhb","lk","nk","ln","cb","vmv","sl","sg","nh","mb","cv","tk","wn","sco","cro","so","ps","nc","sgi","jl","nci","lm","jb","sge","cm","ub","if","sc");
         $initials_ok = [];
         
         $this->set_dom();
