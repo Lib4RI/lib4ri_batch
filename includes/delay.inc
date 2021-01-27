@@ -5,7 +5,7 @@ abstract class delay{
         $this->options = $options;
     }
     
-    abstract public function pause(); 
+    abstract public function pause($pid); 
 
 }
 
