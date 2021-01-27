@@ -1,8 +1,7 @@
 <?php
 abstract class delay{
     
-    public function __construct($pid, $options) {
-        $this->pid = $pid;
+    public function __construct($options) {
         $this->options = $options;
     }
     
@@ -11,12 +10,12 @@ abstract class delay{
 }
 
 class none extends delay{
-    public function pause(){
+    public function pause($pid){
     }
 }
 
 class fix_delay extends delay{
-    public function pause(){
+    public function pause($pid){
         sleep((double)$this->options['delay']);
     }    
 }

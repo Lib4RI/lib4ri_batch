@@ -131,6 +131,10 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
             $sandbox['log']->log_plain('Dry run: '.$dry);
             $sandbox['log']->log('Starting execution');
         }
+        
+        if (($delay != null) && ($dry == false)){
+            $sandbox['delay'] = new $delay($delay_options);
+        }
     }
     
     // Grab the next object in the namespace.
@@ -151,8 +155,7 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
     }
     
     if (($context['finished'] != 1) && ($delay != null) && ($dry == false)){
-        $delay_class = new $delay($pid, $delay_options);
-        $delay_class->pause();
+        $sandbox['delay']->pause($pid);
         //add pause here
     }
     
