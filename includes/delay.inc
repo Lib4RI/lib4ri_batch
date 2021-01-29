@@ -25,7 +25,7 @@ class threshold_delay extends delay{
         $load = $this->options['threshold'];
         
         while ((double)$load >= (double)$this->options['threshold']){
-            $load = getServerLoad((double)$this->options['delay']);
+            $load = $this->getServerLoad((double)$this->options['delay']);
             echo "$load ... waiting\n";
         }
         
@@ -79,9 +79,9 @@ class threshold_delay extends delay{
         {
             // Collect 2 samples - each with 1 second period
             // See: https://de.wikipedia.org/wiki/Load#Der_Load_Average_auf_Unix-Systemen
-            $statData1 = sample_stat();
+            $statData1 = $this->sample_stat();
             sleep(1);
-            $statData2 = sample_stat();
+            $statData2 = $this->sample_stat();
             
             if
             (
