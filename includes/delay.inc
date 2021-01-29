@@ -25,7 +25,8 @@ class threshold_delay extends delay{
         $load = $this->options['threshold'];
         
         while ($load >= $this->options['threshold']){
-            
+            $load = getServerLoad((double)$this->options['delay']);
+            echo "$load ... waiting\n";
         }
         
     }
@@ -68,5 +69,41 @@ class threshold_delay extends delay{
         }
         
         return null;
+    }
+    
+    private function getServerLoad($delay)
+    {
+        $load = null;
+        
+        if (is_readable("/proc/stat"))
+        {
+            // Collect 2 samples - each with 1 second period
+            // See: https://de.wikipedia.org/wiki/Load#Der_Load_Average_auf_Unix-Systemen
+            $statData1 = sample_stat();
+            sleep(1);
+            $statData2 = sample_stat();
+            
+            if
+            (
+                (!is_null($statData1)) &&
+                (!is_null($statData2))
+                )
+            {
+                // Get difference
+                $statData2[0] -= $statData1[0];
+                $statData2[1] -= $statData1[1];
+                $statData2[2] -= $statData1[2];
+                $statData2[3] -= $statData1[3];
+                
+                // Sum up the 4 values for User, Nice, System and Idle and calculate
+                // the percentage of idle time (which is part of the 4 values!)
+                $cpuTime = $statData2[0] + $statData2[1] + $statData2[2] + $statData2[3];
+                
+                // Invert percentage to get CPU time, not idle time
+                $load = 100 - ($statData2[3] * 100 / $cpuTime);
+            }
+        }
+            
+        return $load;
     }
 }
