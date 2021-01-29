@@ -24,9 +24,8 @@ class threshold_delay extends delay{
     public function pause($pid){
         $load = $this->options['threshold'];
         
-        while ((double)$load >= (double)$this->options['threshold']){
-            $load = $this->getServerLoad((double)$this->options['delay']);
-            echo "$load ... waiting\n";
+        while (($load = (double)$this->getServerLoad((double)$this->options['delay'])) >= (double)$this->options['threshold']){
+            echo "CPU load: $load% ... waiting\n";
         }
         
     }
@@ -80,7 +79,7 @@ class threshold_delay extends delay{
             // Collect 2 samples - each with 1 second period
             // See: https://de.wikipedia.org/wiki/Load#Der_Load_Average_auf_Unix-Systemen
             $statData1 = $this->sample_stat();
-            sleep(1);
+            sleep($delay);
             $statData2 = $this->sample_stat();
             
             if
