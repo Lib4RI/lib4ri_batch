@@ -1615,7 +1615,7 @@ class update_quality_control extends batch_edit_mods{
         }
         
         /************************************************************************/
-        if((stripos($section_dep->nodeValue, 'jt') != false) && (sizeof($initials_ok) == 0)){
+        if((stripos($section_dep->nodeValue, 'jt') !== false) && (sizeof($initials_ok) == 0)){
             $section_notes = $this->get_xpath()->query('//mods:mods/mods:note [@type="notes_lib4ri"]')->item(0);
             
             if ($section_notes === NULL){
