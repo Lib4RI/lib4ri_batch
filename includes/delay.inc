@@ -24,7 +24,7 @@ class threshold_delay extends delay{
     public function pause($pid){
         $load = $this->options['threshold'];
         
-        while ($load >= $this->options['threshold']){
+        while ((double)$load >= (double)$this->options['threshold']){
             $load = getServerLoad((double)$this->options['delay']);
             echo "$load ... waiting\n";
         }
