@@ -120,6 +120,39 @@ class purge extends command{
  *
  *
  ********************************************************************/
+
+class label_decode extends command{
+    
+    protected function _dry_exec(){
+        //        $this->retrieve_islandora_object();
+        if (!$this->object){
+            $this->message = $this->get_pid().': object not found';
+            $this->stop = true;
+        }
+        elseif ($this->has_children()){
+            $this->message = $this->get_pid().': Has children. Cannot edit';
+            $this->stop = true;
+        }
+        else{
+            $this->edited_label = html_entity_decode($this->object->label, ENT_QUOTES);
+            if ($this->object->label == $this->edited_label){
+                $this->stop = true;
+                $this->message = $this->get_pid().': Label NOT edited';
+            }
+            $this->message = $this->get_pid().': Label edited';
+        }
+    }
+    
+    protected function _exec(){
+        $this->object->label = $this->edited_label;
+    }
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
 class show_type extends command{
     
     private function get_pub_type(AbstractObject $object) {
