@@ -139,7 +139,9 @@ class label_decode extends command{
                 $this->stop = true;
                 $this->message = $this->get_pid().': Label NOT edited';
             }
-            $this->message = $this->get_pid().': Label edited';
+            else{
+                $this->message = $this->get_pid().': Label edited';
+            }
         }
     }
     
