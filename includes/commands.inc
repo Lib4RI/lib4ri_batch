@@ -1679,4 +1679,34 @@ class update_quality_control extends batch_edit_mods{
         }
     }
 }
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class duplicate_page_edit extends batch_edit_mods{
+    protected $update_dc = false;
     
+    protected function edit_mxds(){
+        $to_remove = $this->options['remove'];
+        $edited = false;
+        $this->set_dom();
+        $this->set_xpath();
+        
+        $section = array('page' => NULL, 'pages' => NULL);
+        
+        $section['page']  = $this->get_xpath()->query('//mods:mods/mods:relatedItem/mods:part/mods:extent [@unit="page"]' )->item(0);
+        $section['pages'] = $this->get_xpath()->query('//mods:mods/mods:relatedItem/mods:part/mods:extent [@unit="pages"]')->item(0);
+        
+        if (($section['page'] === NULL) OR ($section['pages'] === NULL)){
+            return $this->get_mxds_content();
+        }
+        else{
+            $section[$to_remove]->parentNode->removeChild($section[$to_remove]);
+            $edited = true;
+            return $this->get_dom()->saveXML();
+        }
+    }
+
+    
+}
