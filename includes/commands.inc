@@ -1706,7 +1706,37 @@ class duplicate_page_edit extends batch_edit_mods{
             $edited = true;
             return $this->get_dom()->saveXML();
         }
-    }
+    }            
+}
 
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class append_funding_info extends batch_edit_mods{
+    protected $update_dc = false;
     
+    protected function edit_mxds(){
+        module_load_include('incl', 'lib4ri_pub_db', 'utils/classes');
+        
+        $edited = false;
+        $this->set_dom();
+        $this->set_xpath();
+        
+        $doi = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="doi"]' )->item(0);
+        $eid = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="scopus"]' )->item(0);
+        
+        $retriever = new $this->options['retriever'];
+        $retriever->setKey(variable_get('lib4ri_pub_db_scopus_api_key'))->serve();
+        $retrieved_mods = $retriever->getProcessedDom()[0];
+     
+        $enricher = new $this->options['enricher'];
+        $enricher->setIds(array($doi, $eid));
+        $enricher->setDom($retrieved_mods);
+        $enricher->enrich();
+        $enriched_mods = $enricher->getDom();
+        
+        
+    }
 }
