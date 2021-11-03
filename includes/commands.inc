@@ -1718,16 +1718,18 @@ class append_funding_info extends batch_edit_mods{
     protected $update_dc = false;
     
     protected function edit_mxds(){
-        module_load_include('incl', 'lib4ri_pub_db', 'utils/classes');
+        module_load_include('inc', 'lib4ri_pub_db', 'utils/classes');
+        module_load_include('inc', 'lib4ri_pub_db', 'utils/data_servant_classes');
         
         $edited = false;
         $this->set_dom();
         $this->set_xpath();
-        
-        $doi = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="doi"]' )->item(0);
-        $eid = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="scopus"]' )->item(0);
+   
+        $doi = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="doi"]' )->item(0)->nodeValue;
+        $eid = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="scopus"]' )->item(0)->nodeValue;
         
         $retriever = new $this->options['retriever'];
+        $retriever->setDoi($doi);
         $retriever->setKey(variable_get('lib4ri_pub_db_scopus_api_key'))->serve();
         $retrieved_mods = $retriever->getProcessedDom()[0];
      
@@ -1737,6 +1739,53 @@ class append_funding_info extends batch_edit_mods{
         $enricher->enrich();
         $enriched_mods = $enricher->getDom();
         
+        $awards_in_dora = $this->get_awards_in_mods($this->get_dom());
+        $awards_fetched = $this->get_awards_in_mods($enriched_mods);
+     
+        $awards_to_add = array_diff($awards_fetched, $awards_in_dora);
+            
+        if (!empty($awards_to_add)){
+            $edited = true;
+            $funding_section = $this->get_xpath()->query('//mods:mods/mods:extension/mods:fundingReferences' )->item(0);
+            if (empty($funding_section)){
+                $extension_section = $this->get_xpath()->query('//mods:mods/mods:extension' )->item(0);
+                $funding_section = $this->get_dom()->createElement('fundingReferences');
+                $extension_section->appendChild($funding_section);
+            }
+            
+            foreach ($awards_to_add as $award){
+                $funding_reference = $this->get_funding_reference($enriched_mods, $award);             
+                $funding_section->appendChild($this->get_dom()->importNode($funding_reference, true));
+            }
+            return $this->get_dom()->saveXML();
+        }
+        return $this->get_mxds_content();
+    }
+    
+    private function get_awards_in_mods($mods_dom){
+        $xpath = new DOMXPath($mods_dom);
+        $xpath->registerNamespace(strtolower($this->mxds_type), $this->mxds_namespaceURI);
         
+        $funding_references = $xpath->query('//mods:mods/mods:extension/mods:fundingReferences/mods:fundingReference');
+        $awards =[];
+        foreach ($funding_references as $reference){
+            array_push($awards, $reference->getElementsByTagName('awardNumber')->item(0)->nodeValue);
+        }
+        
+        return $awards;
+    }
+    
+    private function get_funding_reference($dom, $award_number){
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace(strtolower($this->mxds_type), $this->mxds_namespaceURI);
+        
+        $funding_references = $xpath->query('//mods:mods/mods:extension/mods:fundingReferences/mods:fundingReference');
+        foreach ($funding_references as $reference){
+            if (($reference->getElementsByTagName('awardNumber')->item(0)->nodeValue) == $award_number){
+                return $reference;
+            }
+        }
+        
+        return null;
     }
 }
