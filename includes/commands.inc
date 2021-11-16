@@ -1752,6 +1752,14 @@ class append_funding_info extends batch_edit_mods{
                 $funding_section = $this->get_dom()->createElement('fundingReferences');
                 $extension_section->appendChild($funding_section);
             }
+            //Remove empty reference sections
+            $mods_fund_references = $this->get_xpath()->query('//mods:mods/mods:extension/mods:fundingReferences/mods:fundingReference' );
+            foreach ($mods_fund_references as $reference){
+                if( ($reference->getElementsByTagName('awardNumber')->item(0)->nodeValue == null) && ($reference->getElementsByTagName('awardTitle')->item(0)->nodeValue == null)){
+                    $funding_section->removeChild($reference);
+                }
+                
+            }
             
             foreach ($awards_to_add as $award){
                 $funding_reference = $this->get_funding_reference($enriched_mods, $award);             
