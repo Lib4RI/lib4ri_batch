@@ -1732,6 +1732,7 @@ class append_funding_info extends batch_edit_mods{
         
         $retriever = new $this->options['retriever'];
         $retriever->setDoi($doi);
+        $retriever->setEid($eid);
         $retriever->setKey(variable_get('lib4ri_pub_db_scopus_api_key'))->serve();
         $retrieved_mods = $retriever->getProcessedDom()[0];
         $enricher = new $this->options['enricher'];
