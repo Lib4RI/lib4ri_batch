@@ -288,7 +288,9 @@ abstract class batch_edit_mxds extends command{
     }
     
     protected function set_dom(){
-        $this->dom = new DOMDocument();
+        $this->dom = new DOMDocument('1.0');
+        $this->dom->preserveWhiteSpace = false;
+        $this->dom->formatOutput = true;
         $this->dom->loadXML($this->mxds_content);
     }
     
@@ -1732,7 +1734,6 @@ class append_funding_info extends batch_edit_mods{
         $retriever->setDoi($doi);
         $retriever->setKey(variable_get('lib4ri_pub_db_scopus_api_key'))->serve();
         $retrieved_mods = $retriever->getProcessedDom()[0];
-     
         $enricher = new $this->options['enricher'];
         $enricher->setIds(array($doi, $eid));
         $enricher->setDom($retrieved_mods);
@@ -1760,8 +1761,8 @@ class append_funding_info extends batch_edit_mods{
                 }
                 
             }
-            
-            foreach ($awards_to_add as $award){
+
+            foreach ($awards_to_add as $award){           
                 $funding_reference = $this->get_funding_reference($enriched_mods, $award);             
                 $funding_section->appendChild($this->get_dom()->importNode($funding_reference, true));
             }
