@@ -379,6 +379,14 @@ abstract class batch_edit_mods extends batch_edit_mxds{
 //        return drupal_get_path('module', 'islandora_importer') . '/xsl/mods_to_dc.xsl';
         return drupal_get_path('module', 'xml_form_builder') . '/transforms/mods_to_dc.xsl';
     }
+    
+    function get_empty_mods(){
+        $mods = new DOMDocument("1.0", "UTF-8");
+        $mods->preserveWhiteSpace = false;
+        $mods->formatOutput = true;
+        $mods->loadXML('<mods xmlns="http://www.loc.gov/mods/v3" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink"/>');
+        return $mods;
+    }
 }
 
 /********************************************************************
@@ -1735,15 +1743,19 @@ class append_funding_info extends batch_edit_mods{
         $retriever->setEid($eid);
         $retriever->setKey(variable_get('lib4ri_pub_db_scopus_api_key'))->serve();
         $retrieved_mods = $retriever->getProcessedDom()[0];
+        $retrieved_mods = NULL;
+        if (is_null($retrieved_mods)){
+            $retrieved_mods = $this->get_empty_mods();
+        }
         $enricher = new $this->options['enricher'];
-        $enricher->setIds(array($doi, $eid));
+        $enricher->setIds(array('doi'=>$doi, 'eid'=>$eid));
         $enricher->setDom($retrieved_mods);
         $enricher->enrich();
         $enriched_mods = $enricher->getDom();
-        
-        $awards_in_dora = $this->get_awards_in_mods($this->get_dom());
-        $awards_fetched = $this->get_awards_in_mods($enriched_mods);
-     
+
+        $awards_in_dora = $this->get_awards_in_mods($this->get_dom()->saveXML());
+        $awards_fetched = $this->get_awards_in_mods($enriched_mods->saveXML());
+        var_dump($awards_fetched);     
         $awards_to_add = array_diff($awards_fetched, $awards_in_dora);
             
         if (!empty($awards_to_add)){
@@ -1764,7 +1776,7 @@ class append_funding_info extends batch_edit_mods{
             }
 
             foreach ($awards_to_add as $award){           
-                $funding_reference = $this->get_funding_reference($enriched_mods, $award);             
+                $funding_reference = $this->get_funding_reference($enriched_mods->saveXML(), $award);             
                 $funding_section->appendChild($this->get_dom()->importNode($funding_reference, true));
             }
             return $this->get_dom()->saveXML();
@@ -1772,11 +1784,17 @@ class append_funding_info extends batch_edit_mods{
         return $this->get_mxds_content();
     }
     
-    private function get_awards_in_mods($mods_dom){
+    private function get_awards_in_mods($mods){
+        $mods_dom = new DOMDocument("1.0", "UTF-8");
+        $mods_dom->preserveWhiteSpace = false;
+        $mods_dom->formatOutput = true;
+        $mods_dom->loadXML($mods);
+        
         $xpath = new DOMXPath($mods_dom);
         $xpath->registerNamespace(strtolower($this->mxds_type), $this->mxds_namespaceURI);
-        
+
         $funding_references = $xpath->query('//mods:mods/mods:extension/mods:fundingReferences/mods:fundingReference');
+        
         $awards =[];
         foreach ($funding_references as $reference){
             array_push($awards, $reference->getElementsByTagName('awardNumber')->item(0)->nodeValue);
@@ -1785,11 +1803,16 @@ class append_funding_info extends batch_edit_mods{
         return $awards;
     }
     
-    private function get_funding_reference($dom, $award_number){
+    private function get_funding_reference($xml, $award_number){
+        $dom = new DOMDocument("1.0", "UTF-8");
+        $dom->preserveWhiteSpace = false;
+        $dom->formatOutput = true;
+        $dom->loadXML($xml);
+        
         $xpath = new DOMXPath($dom);
         $xpath->registerNamespace(strtolower($this->mxds_type), $this->mxds_namespaceURI);
         
-        $funding_references = $xpath->query('//mods:mods/mods:extension/mods:fundingReferences/mods:fundingReference');
+        $funding_references = $xpath->query('//mods:mods/mods:extension/mods:fundingReferences/mods:fundingReference');        
         foreach ($funding_references as $reference){
             if (($reference->getElementsByTagName('awardNumber')->item(0)->nodeValue) == $award_number){
                 return $reference;
