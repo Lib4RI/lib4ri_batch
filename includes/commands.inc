@@ -1740,10 +1740,13 @@ class append_funding_info extends batch_edit_mods{
         
         $retriever = new $this->options['retriever'];
         $retriever->setDoi($doi);
-        $retriever->setEid($eid);
+        if (!empty($eid)){
+            $retriever->setEid($eid);
+        }
+
         $retriever->setKey(variable_get('lib4ri_pub_db_scopus_api_key'))->serve();
         $retrieved_mods = $retriever->getProcessedDom()[0];
-//        $retrieved_mods = NULL;
+
         if (is_null($retrieved_mods)){
             $retrieved_mods = $this->get_empty_mods();
         }
@@ -1756,7 +1759,6 @@ class append_funding_info extends batch_edit_mods{
         $awards_in_dora = $this->get_awards_in_mods($this->get_dom()->saveXML());
         $awards_fetched = $this->get_awards_in_mods($enriched_mods->saveXML());  
         $awards_to_add = array_diff($awards_fetched, $awards_in_dora);
-            
         if (!empty($awards_to_add)){
             $edited = true;
             $funding_section = $this->get_xpath()->query('//mods:mods/mods:extension/mods:fundingReferences' )->item(0);
@@ -1793,7 +1795,6 @@ class append_funding_info extends batch_edit_mods{
         $xpath->registerNamespace(strtolower($this->mxds_type), $this->mxds_namespaceURI);
 
         $funding_references = $xpath->query('//mods:mods/mods:extension/mods:fundingReferences/mods:fundingReference');
-        
         $awards =[];
         foreach ($funding_references as $reference){
             array_push($awards, $reference->getElementsByTagName('awardNumber')->item(0)->nodeValue);
