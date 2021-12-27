@@ -1764,6 +1764,11 @@ class append_funding_info extends batch_edit_mods{
             $funding_section = $this->get_xpath()->query('//mods:mods/mods:extension/mods:fundingReferences' )->item(0);
             if (empty($funding_section)){
                 $extension_section = $this->get_xpath()->query('//mods:mods/mods:extension' )->item(0);
+                if (empty($extension_section)){
+                    $extension_section = $this->get_dom()->createElement('extension');
+                    $mods_root = $this->get_xpath()->query('//mods:mods')[0];
+                    $mods_root->appendChild($extension_section);
+                }
                 $funding_section = $this->get_dom()->createElement('fundingReferences');
                 $extension_section->appendChild($funding_section);
             }
