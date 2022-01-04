@@ -1827,3 +1827,35 @@ class append_funding_info extends batch_edit_mods{
         return null;
     }
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class append_research_data_info extends batch_edit_mods{
+    protected $update_dc = false;
+    
+    protected function edit_mxds(){
+        module_load_include('inc', 'lib4ri_pub_db', 'utils/classes');
+        
+        $edited = false;
+        $this->set_dom();
+        $this->set_xpath();
+        
+        $doi = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="doi"]' )->item(0)->nodeValue;
+        
+        $enricher = new $this->options['enricher'];
+        $enricher->setIds(array('doi'=>$doi, 'eid'=>NULL));
+        $enricher->setDom($this->get_dom());
+        $enricher->enrich();
+        if ($enricher->isResearchDataEnriched()){
+            $edited = true;
+            return $enricher->getDom()->saveXML();
+        }
+        return $this->get_mxds_content();
+    }
+   
+}
+    
+    
