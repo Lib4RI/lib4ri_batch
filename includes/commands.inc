@@ -1868,6 +1868,7 @@ class update_datacite_alert extends command{
     
     protected function _dry_exec(){
         module_load_include('inc', 'lib4ri_datacite_alert', 'includes/classes');
+        
         $dom = new DOMDocument();
         $dom->loadXML($this->object['MODS']->content);
         $xpath = new DOMXPath($dom);        
@@ -1877,12 +1878,14 @@ class update_datacite_alert extends command{
         $this->upd->setDoi($doi);
         $this->upd->fetch()->filter();
 //        var_dump($this->upd->getData());
-        $this->message .=  ' found to add: '.count($this->upd->getToAdd());
+        $this->message .=  $this->get_pid().': '.count($this->upd->getToAdd()).' items found to add';
     }
 
     protected function _exec(){
-        $this->upd->update();
-        $this->message .=  ' added to alert list';
+        if (count($this->upd->getToAdd()) > 0){
+            $this->upd->update();
+            $this->message .=  ' - added to alert list';
+        }
     }
 
     
