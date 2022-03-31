@@ -1858,4 +1858,33 @@ class append_research_data_info extends batch_edit_mods{
    
 }
     
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class update_datacite_alert extends command{
+    protected $upd;
+    
+    protected function _dry_exec(){
+        module_load_include('inc', 'lib4ri_datacite_alert', 'includes/classes');
+        $dom = new DOMDocument();
+        $dom->loadXML($this->object['MODS']->content);
+        $xpath = new DOMXPath($dom);        
+        $doi = $xpath->query('//mods:mods/mods:identifier [@type="doi"]' )->item(0)->nodeValue;
+       
+        $this->upd = new DataCiteRetrieval();
+        $this->upd->setDoi($doi);
+        $this->upd->fetch()->filter();
+//        var_dump($this->upd->getData());
+        $this->message .=  ' found to add: '.count($this->upd->getToAdd());
+    }
+
+    protected function _exec(){
+        $this->upd->update();
+        $this->message .=  ' added to alert list';
+    }
+
+    
+}
     
