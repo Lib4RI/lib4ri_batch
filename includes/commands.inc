@@ -1877,7 +1877,6 @@ class update_datacite_alert extends command{
         $this->upd = new DataCiteRetrieval();
         $this->upd->setDoi($doi);
         $this->upd->fetch()->filter();
-//        var_dump($this->upd->getData());
         $this->message .=  $this->get_pid().': '.count($this->upd->getToAdd()).' items found to add';
     }
 
