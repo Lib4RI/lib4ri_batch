@@ -1552,7 +1552,7 @@ class doi_check extends command{
  *
  *
  ********************************************************************/
-class delete_mods_tag extends batch_edit_mods{
+class delete_mods_tag extends batch_edit_mods{ //
     protected $update_dc = FALSE; 
     
     protected function edit_mxds(){
@@ -1585,6 +1585,17 @@ class delete_mods_tag extends batch_edit_mods{
         }
     }
 
+}
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class delete_mods_element extends batch_edit_mods{
+    protected function edit_mxds(){
+        
+    }
 }
 
 /********************************************************************
@@ -1828,35 +1839,6 @@ class append_funding_info extends batch_edit_mods{
     }
 }
 
-/********************************************************************
- *
- *
- *
- ********************************************************************/
-class append_research_data_info extends batch_edit_mods{
-    protected $update_dc = false;
-    
-    protected function edit_mxds(){
-        module_load_include('inc', 'lib4ri_pub_db', 'utils/classes');
-        
-        $edited = false;
-        $this->set_dom();
-        $this->set_xpath();
-        
-        $doi = $this->get_xpath()->query('//mods:mods/mods:identifier [@type="doi"]' )->item(0)->nodeValue;
-        
-        $enricher = new $this->options['enricher'];
-        $enricher->setIds(array('doi'=>$doi, 'eid'=>NULL));
-        $enricher->setDom($this->get_dom());
-        $enricher->enrich();
-        if ($enricher->isResearchDataEnriched()){
-            $edited = true;
-            return $enricher->getDom()->saveXML();
-        }
-        return $this->get_mxds_content();
-    }
-   
-}
     
 /********************************************************************
  *
@@ -1874,9 +1856,16 @@ class update_datacite_alert extends command{
         $xpath = new DOMXPath($dom);        
         $doi = $xpath->query('//mods:mods/mods:identifier [@type="doi"]' )->item(0)->nodeValue;
        
+        if (trim($doi) == ''){
+            return -1;
+        }
+        
         $this->upd = new DataCiteRetrieval();
+        $this->upd->setDefQuery();
         $this->upd->setDoi($doi);
-        $this->upd->fetch()->filter();
+        $this->upd->setDoraPid($this->get_pid());
+        $this->upd->fetch()->filterSingleDoi();
+        
         $this->message .=  $this->get_pid().': '.count($this->upd->getToAdd()).' items found to add';
     }
 
