@@ -1866,7 +1866,7 @@ class update_datacite_alert extends command{
         $this->upd->setDoraPid($this->get_pid());
         $this->upd->fetch()->filterSingleDoi();
         
-        $this->message .=  $this->get_pid().': '.count($this->upd->getToAdd()).' items found to add';
+        $this->message .=  $this->get_pid().': '.count($this->upd->getToAdd()).' item(s) found to add';
     }
 
     protected function _exec(){
