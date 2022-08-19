@@ -1878,4 +1878,32 @@ class update_datacite_alert extends command{
 
     
 }
+
+/********************************************************************
+ *
+ *
+ *
+ ********************************************************************/
+class update_psi_auth_affiliation extends batch_edit_mods{
+    protected $update_dc = false;
     
+    protected function edit_mxds(){
+        $affil_level = options['affiliation_level'];
+        $this->set_dom();
+        $this->set_xpath();
+        $sections = $this->get_xpath()->query("//mods:mods/mods:name [@type=\"$affil_level\"]/mods:affiliation [@type=\"$affil_level\"]");
+        
+        $edited = false;
+        foreach ($sections as $section){
+            $affiliation = trim($section->nodeValue);            
+            if ($affiliation == $this->options['current']){
+                $section->nodeValue = $this->options['new'];
+                $edited = true;
+            }
+        }
+        if ($edited)
+            return $this->get_dom()->saveXML();
+            else
+                return $this->get_mxds_content();
+    }
+}
