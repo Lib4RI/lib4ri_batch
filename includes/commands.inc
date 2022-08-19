@@ -1884,11 +1884,11 @@ class update_datacite_alert extends command{
  *
  *
  ********************************************************************/
-class update_psi_auth_affiliation extends batch_edit_mods{
+class update_psi_auth_affiliation_mods extends batch_edit_mods{
     protected $update_dc = false;
     
     protected function edit_mxds(){
-        $affil_level = options['affiliation_level'];
+        $affil_level = $this->options['affiliation_level'];
         $this->set_dom();
         $this->set_xpath();
         $sections = $this->get_xpath()->query("//mods:mods/mods:name [@type=\"$affil_level\"]/mods:affiliation [@type=\"$affil_level\"]");
