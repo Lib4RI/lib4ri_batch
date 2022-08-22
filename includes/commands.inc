@@ -204,7 +204,7 @@ abstract class batch_edit_mxds extends command{
     
     protected function _dry_exec(){
 //        $this->retrieve_islandora_object();
-        if (in_array("ir:citationCModel", $this->object->models) or in_array("islandora:personCModel", $this->object->models)){
+        if (in_array("ir:citationCModel", $this->object->models) or in_array("islandora:personCModel", $this->object->models) or in_array("islandora:organizationCModel", $this->object->models) ){
             $this->retrieve_mxds();
             $this->retrieve_mxds_content();
             $this->mxds_content = $this->edit_mxds(); //To be implemented in subclasses
@@ -921,7 +921,7 @@ class regenerate_dc extends batch_edit_mods{
     protected function _dry_exec(){
         //        $this->retrieve_islandora_object();
         $this->edited = true;
-        if (in_array("ir:citationCModel", $this->object->models) or in_array("islandora:personCModel", $this->object->models)){
+        if (in_array("ir:citationCModel", $this->object->models) or in_array("islandora:personCModel", $this->object->models) or in_array("islandora:organizationCModel", $this->object->models)){
             $this->retrieve_mxds();
             $this->retrieve_mxds_content();
             $this->message = $this->get_pid();
