@@ -1891,7 +1891,7 @@ class update_psi_auth_affiliation_mods extends batch_edit_mods{
         $affil_level = $this->options['affiliation_level'];
         $this->set_dom();
         $this->set_xpath();
-        $sections = $this->get_xpath()->query("//mods:mods/mods:name [@type=\"$affil_level\"]/mods:affiliation [@type=\"$affil_level\"]");
+        $sections = $this->get_xpath()->query("//mods:mods/mods:name [@type=\"personal\"]/mods:affiliation [@type=\"$affil_level\"]");
         
         $edited = false;
         foreach ($sections as $section){
