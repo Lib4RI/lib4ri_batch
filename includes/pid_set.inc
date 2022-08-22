@@ -78,7 +78,9 @@ class solr_search extends get_pids{
 //         $qp->solrParams['facet.mincount'] = 1;
 //         $qp->solrParams['facet.field'] = $facet_fields;
         $qp->solrParams['facet.limit'] = $this->facetLimit;
-        $qp->solrParams['fq'] = array();
+        if ($this->options['plainQuery'] == TRUE){
+            $qp->solrParams['fq'] = array();
+        }
         $qp->solrLimit = $this->solrLimit;
         $qp->executeQuery(TRUE, FALSE);
         $results = $qp->islandoraSolrResult['response']['objects'];
