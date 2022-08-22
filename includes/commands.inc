@@ -1924,9 +1924,9 @@ class update_unit_name_mads extends batch_edit_mads{
         
         $edited = false;
         foreach ($sections as $section){
-            $affiliation = trim($section->nodeValue);
+            $affiliation = preg_replace('/\s+/', ' ',$section->getElementsByTagName('namePart')->item(0)->nodeValue);
             if ($affiliation == $this->options['current']){
-                $section->nodeValue = $this->options['new'];
+                $section->getElementsByTagName('namePart')->item(0)->nodeValue = $this->options['new'];
                 $edited = true;
             }
         }
