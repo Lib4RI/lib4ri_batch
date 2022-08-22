@@ -1914,7 +1914,7 @@ class update_psi_auth_affiliation_mods extends batch_edit_mods{
  *
  ********************************************************************/
 class update_unit_name_mads extends batch_edit_mads{
-    protected $update_dc = false;
+    protected $update_dc = true;
     
     protected function edit_mxds(){
 
