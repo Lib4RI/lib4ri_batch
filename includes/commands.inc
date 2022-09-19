@@ -1936,3 +1936,27 @@ class update_unit_name_mads extends batch_edit_mads{
                 return $this->get_mxds_content();
     }
 }
+
+class edit_notes_lib4ri extends batch_edit_mods{       
+    protected $update_dc = true;
+    
+    protected function edit_mxds(){
+        $this->set_dom();
+        $this->set_xpath();
+        $section_notes = $this->get_xpath()->query('//mods:mods/mods:note [@type="notes_lib4ri"]')[0];
+        $text = $this->options['text'];
+        if ($section_notes === NULL){
+            $section_notes = $this->get_dom()->createElement('note');
+            $attribute = $this->get_dom()->createAttribute('type');
+            $attribute->value = 'notes_lib4ri';
+            $section_notes->appendChild($attribute);
+            $section_notes->nodeValue = $text;
+            $this->get_dom()->firstChild->appendChild($section_notes);
+        }
+        else{
+            $section_notes->nodeValue = trim($section_notes->nodeValue.' '.$text,' ');
+        }
+
+        return $this->get_mxds_content();
+    }
+}
