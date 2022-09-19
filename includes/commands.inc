@@ -1957,6 +1957,6 @@ class edit_notes_lib4ri extends batch_edit_mods{
             $section_notes->nodeValue = trim($section_notes->nodeValue.' '.$text,' ');
         }
 
-        return $this->get_mxds_content();
+        return $this->get_dom()->saveXML();
     }
 }
