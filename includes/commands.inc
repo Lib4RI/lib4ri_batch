@@ -1979,7 +1979,8 @@ class bagit extends command{
       //$whatever =   $this->options['whatever']; //possibly other options to pass to the bagit bagger
         
         /*************************************************************************************************/
-        /*  IMPLEMENT HERE THE BAGGER LOGIC (classe(s) declaration, function(s) call(s), etc...)         
+        /*  IMPLEMENT HERE THE BAGGER LOGIC (classe(s) declaration, function(s) call(s), etc...) 
+         *  This will create a bag for the object with PID $pid      
             Example:
             $bagger = new bagit4riBagger(); //Instantiate the class
             $bagger->setOutUri($out_uri); //set the output destination
