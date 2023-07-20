@@ -1960,3 +1960,43 @@ class edit_notes_lib4ri extends batch_edit_mods{
         return $this->get_dom()->saveXML();
     }
 }
+
+class bagit extends command{
+    
+    protected function _dry_exec(){
+        if (module_exists('bagit4ri')) {
+            module_load_include('inc', 'bagit4ri', ''); //Add the file to include. Add more lines if more than one file is required
+        }
+        else{
+            $this->message = 'Can\'t find bagit4ri module';
+            $this->stop = true; // this tells the controller of the batch process (implemented in lib4ri_batch.drush.inc) to stop processing this item.
+            return 0;
+        }
+        
+        $pid = $this->get_pid();
+        $compression = $this->options['compression']; //read the compression strategy to use from the passed options
+        $out_uri = $this->options['out_uri']; //read the output uri from the passed options
+      //$whatever =   $this->options['whatever']; //possibly other options to pass to the bagit bagger
+        
+        /*************************************************************************************************/
+        /*  IMPLEMENT HERE THE BAGGER LOGIC (classe(s) declaration, function(s) call(s), etc...)         
+            Example:
+            $bagger = new bagit4riBagger(); //Instantiate the class
+            $bagger->setOutUri($out_uri); //set the output destination
+            $bagger->setPid($pid); //set the pid
+            $msg = $bagger->bagIt(); //creatte the bag and return a messagge (success/failure)
+        */
+        /*************************************************************************************************/
+        
+        $this->message = $pid.': '.$msg."\n";
+    }
+
+    protected function _exec(){
+        // This method is not really useful here. 
+        // It's to distinguish between dry runs and "real" runs (with ingestion) but it doesn't really apply for bagit. 
+        // It must be here because is defined in the abstract class but can be left blank.
+    }
+
+    
+    
+}
