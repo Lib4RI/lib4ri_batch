@@ -165,7 +165,7 @@ function read_options($options_str){
     $options = [];
     $options_str_a = explode('|',$options_str);
     foreach ($options_str_a as $option){
-        $kv = explode('=',$option);
+        $kv = explode('=',$option,2);
         $options[$kv[0]]=$kv[1];
         if ($kv[1] == 'true')
             $options[$kv[0]]=true;

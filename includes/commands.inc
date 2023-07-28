@@ -1961,35 +1961,71 @@ class edit_notes_lib4ri extends batch_edit_mods{
     }
 }
 
-class bagit extends command{
+class flexible extends command { // intended to be used for BagIt
+
+    protected function messageUpdate( $msg = '' ) {
+		if ( !empty($msg) ) {
+			$this->message = ( is_array($this->message) ? array_filter(array_merge($this->message,[$msg])) : implode(PHP_EOL,array_filter([$this->message,$msg])) );
+		}
+	}
     
+    /*	Drush setup command e.g. with:
+		COMMAND=flexiible #This is the name of the class of the batch framework calling the object (example file commands.inc line ~2000)
+		COMMANDOPTIONS="obj=flexItBatch|call=setup,dump,pack|algo=zip|inc=/var/www/html/sites/all/libraries/flextool/flextool.classes.inc" #Add options here. They must be | separated
+    */
     protected function _dry_exec(){
-        if (module_exists('bagit4ri')) {
-            module_load_include('inc', 'bagit4ri', ''); //Add the file to include. Add more lines if more than one file is required
-        }
-        else{
-            $this->message = 'Can\'t find bagit4ri module';
-            $this->stop = true; // this tells the controller of the batch process (implemented in lib4ri_batch.drush.inc) to stop processing this item.
-            return 0;
-        }
-        
-        $pid = $this->get_pid();
-        $compression = $this->options['compression']; //read the compression strategy to use from the passed options
-        $out_uri = $this->options['out_uri']; //read the output uri from the passed options
-      //$whatever =   $this->options['whatever']; //possibly other options to pass to the bagit bagger
-        
-        /*************************************************************************************************/
-        /*  IMPLEMENT HERE THE BAGGER LOGIC (classe(s) declaration, function(s) call(s), etc...) 
-         *  This will create a bag for the object with PID $pid      
-            Example:
-            $bagger = new bagit4riBagger(); //Instantiate the class
-            $bagger->setOutUri($out_uri); //set the output destination
-            $bagger->setPid($pid); //set the pid
-            $msg = $bagger->bagIt(); //creatte the bag and return a messagge (success/failure)
-        */
-        /*************************************************************************************************/
-        
-        $this->message = $pid.': '.$msg."\n";
+		
+		if ( $inc = @strval($this->options['inc']) ) { // include specified sources (as absolute path or module name):
+			if ( @filesize($inc) ) {
+				// if it's a full path to a file then include directly:
+				@include_once($inc);
+			}
+			elseif ( function_exists('module_load_include') ) { // Durpal 7 support
+				// Allow for example 'lib4ridora' or 'lib4ridora.module' or 'lib4ridora/utilities/tools.inc'
+				if ( $ext = substr(strrchr(basename($inc),'.'),1) ) {
+					$inc = substr($inc,0,-1-strlen($ext));
+				}
+				$ary = explode('/',$inc,2);
+				if ( !empty($ary[0]) && module_exists($ary[0]) ) {
+					module_load_include($ext,$ary[0],@strval($ary[1]));		// presumed there is major *.module loading required include-file
+				} else {
+					$this->messageUpdate( 'ERROR: Could not include \'' . $inc . '\'' );
+					$this->stop = true; // this tells the controller of the batch process (implemented in lib4ri_batch.drush.inc) to stop processing this item.
+					return 0;
+				}
+			}
+		}
+
+		if ( !( $objName = @trim($this->options['obj']) ) || !class_exists($objName) ) {
+			$this->messageUpdate( 'ERROR: Class/object ' . ( empty($objName) ? 'not specified' : $objName.' invalid' ) );
+			$this->stop = true;
+			return 0;
+		}
+
+		if ( !( $pid = $this->get_pid() ) ) {
+			$this->messageUpdate( 'ERROR: Could not get the next PID' );
+			$this->stop = true;
+			return 0;
+		}
+
+		$objFlex = new $objName( $pid );
+		if ( @is_array($objFlex->option) ) {
+			foreach( $this->options as $idx => $opt ) {
+				$objFlex->option[$idx] = $opt;
+			}
+		}
+		$tmp = $this->options['call'];
+		$callAry = ( @is_array($tmp) ? $tmp : ( @is_string($tmp) ? explode(',',$tmp) : ['pre','main','post'] /* default names of methods to run */ ) );
+		foreach( array_map('trim',$callAry) as $call ) {
+			if ( !empty($call) && method_exists($objFlex,$call) ) {
+				if ( $objFlex->$call( $pid ) /* != $pid */ === false ) {
+					break;
+				}
+			}
+		}
+		if ( @is_array($objFlex->report) ) { // message update, supposed $objFlex has a 'report' array:
+			$this->messageUpdate( implode(PHP_EOL,$objFlex->report) );
+		}
     }
 
     protected function _exec(){

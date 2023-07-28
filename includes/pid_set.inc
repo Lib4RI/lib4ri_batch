@@ -42,6 +42,32 @@ class textfile extends get_pids{
     }    
 }
 
+class solr_link extends get_pids{
+
+    protected function get_pid_set(){
+		// Example Solr URL (can be a CSV or Json):
+		// http://lib-dora-prod1.emp-eaw.ch:8080/solr/collection1/select?q=PID%3Awsl-aut*%5c%3a*+AND+MADS_family_mt:C*&sort=PID+asc&rows=987654321&fl=PID%2c+MADS_family_mt%2c+MADS_u1_mt%2c+MADS_organization_mt&wt=csv&indent=true&rows=987654321
+        if ( !( $solrUrl = @trim($this->options['url']) ) ) {
+            $solrUrl = @trim($this->options['link']); // no 'url' option - retry with 'link' (since class is called Solr_LINK)
+        }
+        if ( substr($solrUrl,0,4) != 'http' ) {
+            return; // empty URL or not starting with 'http'
+        }
+        if ( !( $solrJson = @file_get_contents(str_replace(['?','wt=csv&',],['?wt=json&','wt=json&'],$solrUrl.'&')) ) ) { // download as Json!
+            return; // could not access/download this link
+        }
+        if ( ( $dumpFile = @trim($this->options['dump']) ) && @is_dir(dirname($dumpFile)) ) { 
+			@file_put_contents( $dumpFile, $solrJson ); // to dump the file on request/option into an exisiting directory
+		}
+        if ( !( $solrAry = @json_decode($solrJson,TRUE) ) ) { // true: for an array
+            return; // Json decoding failed
+        }
+        if ( @intval($solrAry['response']['numFound']) < 1 || !isset($solrAry['response']['docs']) ) {
+            return; // no Solr results
+        }
+        return array_unique(array_filter(array_map( function($ary) { return @strval($ary['PID']); }, $solrAry['response']['docs'] )));
+    }    
+}
 
 class solr_search extends get_pids{
     
