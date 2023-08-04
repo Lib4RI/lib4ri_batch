@@ -2018,7 +2018,12 @@ class flexible extends command { // intended to be used for BagIt
 		$callAry = ( @is_array($tmp) ? $tmp : ( @is_string($tmp) ? explode(',',$tmp) : ['pre','main','post'] /* default names of methods to run */ ) );
 		foreach( array_map('trim',$callAry) as $call ) {
 			if ( !empty($call) && method_exists($objFlex,$call) ) {
-				if ( $objFlex->$call( $pid ) /* != $pid */ === false ) {
+				$tmp = $objFlex->$call( $pid );
+				if ( is_string($tmp) && in_array(strtolower($tmp),['exit','stop']) ) {
+					$this->stop = true;
+					break; // just break for a potential messageUpdate() and then return 0 to exit the batch process
+				}
+				if ( $tmp /* != $pid */ === false ) {
 					break;
 				}
 			}
@@ -2026,7 +2031,10 @@ class flexible extends command { // intended to be used for BagIt
 		if ( @is_array($objFlex->report) ) { // message update, supposed $objFlex has a 'report' array:
 			$this->messageUpdate( implode(PHP_EOL,$objFlex->report) );
 		}
-    }
+		if ( $this->stop == true ) {
+			return 0;
+		}
+     }
 
     protected function _exec(){
         // This method is not really useful here. 
